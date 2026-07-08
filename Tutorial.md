@@ -105,8 +105,8 @@ Run
 
 ```bash
 Rscript module2_persistent_homology.R \
-    --input-list results/module1/module2_ripser_input_list.txt \
-    --ripser-bin /path/to/ripser++ \
+    --input-list results/module1/example_module2_ripser_input_list.txt \
+    --ripser-bin /work4/home/kuanlin/tools/ripser-plusplus/ripserplusplus/build/ripser++ \
     --outdir results/module2 \
     --prefix example \
     --max-dim 1
@@ -136,8 +136,8 @@ Run
 
 ```bash
 Rscript module3_feature_composition.R \
-    --module1-manifest results/module1/module1_manifest.tsv \
-    --module2-manifest results/module2/module3_input_manifest.tsv \
+    --module1-manifest results/module1/example_module1_output_manifest.tsv \
+    --module2-manifest results/module2/example_module3_input_manifest.tsv \
     --outdir results/module3 \
     --prefix example \
     --target-dim 1
@@ -165,7 +165,7 @@ Run
 
 ```bash
 Rscript module4_participation_score.R \
-    --module3-manifest results/module3/module4_input_manifest.tsv \
+    --module3-manifest results/module3/example_module4_input_manifest.tsv \
     --outdir results/module4 \
     --prefix example
 ```
@@ -194,8 +194,8 @@ Run
 
 ```bash
 Rscript module5_identify_topological_altering_features.R \
-    --module4-manifest results/module4/module5_input_manifest.tsv \
-    --module1-manifest results/module1/module1_manifest.tsv \
+    --module4-manifest results/module4/example_module5_input_manifest.tsv \
+    --module1-manifest results/module1/example_module1_output_manifest.tsv \
     --outdir results/module5 \
     --prefix example \
     --phenotype1 phenotype1 \
