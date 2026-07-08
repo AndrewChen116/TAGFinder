@@ -1,2 +1,259 @@
 # TAGFinder
 A bioinformatics framework for feature-level topological attribution in biological networks using Persistent Homology.
+
+# Software Name
+
+*A bioinformatics framework for feature-level topological attribution in biological networks using Persistent Homology.*
+
+---
+
+## Overview
+
+Persistent homology has become an increasingly popular approach for characterizing the higher-order topology of biological networks. Existing persistent homology methods can quantify topological features, such as connected components and cycles, but they cannot determine which biological features are responsible for the observed topological changes.
+
+This software provides an end-to-end framework that identifies feature-level contributions to network topology remodeling by integrating network construction, persistent homology analysis, topological feature composition analysis, participation score calculation, and statistical identification of topological-altering features.
+
+The software is designed for any feature-by-sample matrix, including transcriptomics, DNA methylation, proteomics, metabolomics, and other omics datasets.
+
+---
+
+# Workflow
+
+Feature table
+↓
+
+Module 1
+Construct Feature Networks
+
+↓
+
+Module 2
+Persistent Homology Analysis
+
+↓
+
+Module 3
+Topological Feature Composition Analysis
+
+↓
+
+Module 4
+Participation Score Calculation
+
+↓
+
+Module 5
+Topological-altering Feature Identification
+
+---
+
+# Software Architecture
+
+| Module | Description |
+|---------|-------------|
+| Module 1 | Construct phenotype-specific feature networks |
+| Module 2 | Perform persistent homology analysis |
+| Module 3 | Extract topological feature compositions |
+| Module 4 | Calculate feature participation scores |
+| Module 5 | Identify topological-altering features |
+
+---
+
+# Installation
+
+## Requirements
+
+- R (≥ 4.3)
+- Python (≥ 3.10)
+- Ripser++
+- Git
+
+## Clone repository
+
+```bash
+git clone https://github.com/yourlab/software.git
+
+cd software
+```
+
+## Install R packages
+
+```r
+install.packages(c(
+  "tidyverse",
+  "data.table",
+  "optparse",
+  "future.apply",
+  "progressr",
+  "igraph"
+))
+```
+
+## Install Ripser++
+
+```bash
+git clone https://github.com/simonzhang00/ripser-plusplus
+
+cd ripser-plusplus
+
+mkdir build
+
+cd build
+
+cmake ..
+
+make
+```
+
+---
+
+# Input
+
+## Feature table
+
+Rows represent biological samples.
+
+Columns represent biological features.
+
+```
+Sample    Feature1    Feature2    Feature3
+S1
+S2
+S3
+...
+```
+
+---
+
+## Metadata
+
+```
+Sample    Phenotype
+
+S1        phenotype1
+
+S2        phenotype1
+
+S3        phenotype2
+```
+
+---
+
+# Usage
+
+## Module 1
+
+```bash
+Rscript module1_network_construction.R \
+    --feature-table expression.tsv \
+    --metadata metadata.tsv
+```
+
+---
+
+## Module 2
+
+```bash
+Rscript module2_persistent_homology.R \
+    --module1-manifest module1_manifest.tsv
+```
+
+---
+
+## Module 3
+
+```bash
+Rscript module3_feature_composition.R \
+    --module2-manifest module2_manifest.tsv
+```
+
+---
+
+## Module 4
+
+```bash
+Rscript module4_participation_score.R \
+    --module3-manifest module3_manifest.tsv
+```
+
+---
+
+## Module 5
+
+```bash
+Rscript module5_identify_topological_altering_features.R \
+    --module4-manifest module4_manifest.tsv
+```
+
+---
+
+# Output
+
+```
+results/
+
+module1/
+
+module2/
+
+module3/
+
+module4/
+
+module5/
+
+summary/
+
+logs/
+```
+
+Final outputs include
+
+- Participation scores
+- Delta participation scores
+- Degree-matched statistics
+- Topological-altering features (TAFs)
+
+---
+
+# Example Dataset
+
+Example datasets are available in
+
+```
+example/
+
+feature_table.tsv
+
+metadata.tsv
+```
+
+Example command
+
+```bash
+bash run_example.sh
+```
+
+---
+
+# Citation
+
+If you use this software in your research, please cite
+
+> Paper information will be updated after publication.
+
+---
+
+# License
+
+MIT License
+
+---
+
+# Contact
+
+Kuan-Lin Chen
+
+Institute of Plant and Microbial Biology, Academia Sinica
+
+Email: kuanlin@gate.sinica.edu.tw
