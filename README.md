@@ -16,6 +16,7 @@ The software is designed for any feature-by-sample matrix, including transcripto
 # Workflow
 
 Feature table
+
 ↓
 
 Module 1
