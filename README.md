@@ -68,9 +68,9 @@ Topological-altering Feature Identification
 ## Clone repository
 
 ```bash
-git clone https://github.com/yourlab/software.git
+git clone https://github.com/PaoyangLab/TAGFinder.git
 
-cd software
+cd TAGFinder
 ```
 
 ## Install R packages
