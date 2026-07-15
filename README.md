@@ -94,10 +94,6 @@ nvcc --version
 
 Clone and compile Ripser++:
 ```
-mkdir -p "${HOME}/tools"
-cd "${HOME}/tools"
-```
-```
 git clone https://github.com/simonzhang00/ripser-plusplus.git
 cd ripser-plusplus/ripserplusplus
 ```
