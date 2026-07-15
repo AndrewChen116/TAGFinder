@@ -285,7 +285,13 @@ standardize_composition_table <- function(df, composition_col, include_inf, inf_
 
   topo_id_col <- first_existing_col(
     df,
-    c("topological_feature_id", "feature_id", "barcode_id", "ID"),
+    c(
+      "homology_feature_id",
+      "topological_feature_id",
+      "feature_id",
+      "barcode_id",
+      "ID"
+    ),
     label = "topological feature ID column"
   )
 
