@@ -65,41 +65,69 @@ Topological-altering Feature Identification
 - Ripser++
 - Git
 
-## Clone repository
+## 1. Clone repository
 
 ```bash
 git clone https://github.com/AndrewChen116/TAGFinder.git
-
 cd TAGFinder
 ```
 
-## Install R packages
+## 2. Create the Conda environment
 
-```r
-install.packages(c(
-  "tidyverse",
-  "data.table",
-  "optparse",
-  "future.apply",
-  "progressr",
-  "igraph"
-))
+The recommended method is to create the environment from environment.yml:
+```bash
+conda env create -f environment.yml
 ```
 
-## Install Ripser++
-
+Activate the environment:
 ```bash
-git clone https://github.com/simonzhang00/ripser-plusplus
+conda activate tagfinder_env
+```
 
-cd ripser-plusplus
+## 3. Install Ripser++
 
-mkdir build
+Check that the NVIDIA driver and CUDA compiler are available:
+```
+nvidia-smi
+nvcc --version
+```
 
+Clone and compile Ripser++:
+```
+mkdir -p "${HOME}/tools"
+cd "${HOME}/tools"
+```
+```
+git clone https://github.com/simonzhang00/ripser-plusplus.git
+cd ripser-plusplus/ripserplusplus
+```
+```
+mkdir -p build
 cd build
-
+```
+```
 cmake ..
+make -j 4
+```
 
-make
+The compiled executable should be located at:
+```
+${HOME}/tools/ripser-plusplus/ripserplusplus/build/ripser++
+```
+Test the executable:
+```
+${HOME}/tools/ripser-plusplus/ripserplusplus/build/ripser++ --help
+```
+
+## 4. Validate the TAGFinder installation
+
+Check the command-line interface of each module:
+```
+Rscript module1_network_construction.R --help
+Rscript module2_persistent_homology.R --help
+Rscript module3_feature_composition.R --help
+Rscript module4_participation_score.R --help
+Rscript module5_identify_topological_altering_features.R --help
 ```
 
 ---
