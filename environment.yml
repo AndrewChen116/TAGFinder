@@ -7,11 +7,3 @@ channels:
 dependencies:
   - r-base=4.3
   - git
-  - make
-  - cmake>=3.20,<4
-
-  # CUDA 10.1-compatible compiler
-  - gcc_impl_linux-64=8.5.0
-  - gxx_impl_linux-64=8.5.0
-  - gcc_linux-64=8.5.0
-  - gxx_linux-64=8.5.0
