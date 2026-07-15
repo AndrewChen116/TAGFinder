@@ -633,13 +633,17 @@ main <- function() {
       "feature_composition_long",
       "score_summary"
     ),
-    path = normalize_path(c(
-      delta_path,
-      score_long_path,
-      score_wide_path,
-      composition_long_path,
-      summary_path
-    )),
+    path = vapply(
+      c(
+        delta_path,
+        score_long_path,
+        score_wide_path,
+        composition_long_path,
+        summary_path
+      ),
+      normalize_path,
+      character(1)
+    ),
     stringsAsFactors = FALSE
   )
   write_tsv_base(module5_manifest, module5_manifest_path)
