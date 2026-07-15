@@ -5,7 +5,7 @@ channels:
 
 dependencies:
   # R
-  - r-base=4.3
+  - r-base=4.1
 
   # Build tools
   - git
