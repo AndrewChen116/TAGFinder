@@ -4,7 +4,14 @@ channels:
   - conda-forge
 
 dependencies:
+  # R
   - r-base=4.3
+
+  # Build tools
   - git
-  - cmake>=3.20,<4
   - make
+  - cmake>=3.20,<4
+
+  # CUDA host compiler (required for Ripser++)
+  - gcc_linux-64=8
+  - gxx_linux-64=8
