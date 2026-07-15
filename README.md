@@ -94,7 +94,7 @@ nvcc --version
 
 Clone and compile Ripser++:
 ```
-git clone https://github.com/simonzhang00/ripser-plusplus.git
+git clone --recursive https://github.com/simonzhang00/ripser-plusplus.git
 cd ripser-plusplus/ripserplusplus
 ```
 ```
