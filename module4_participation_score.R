@@ -160,27 +160,122 @@ first_existing_col <- function(df, candidates, label = "column") {
 ##### 2. Input resolution ######################################################
 
 resolve_composition_path <- function(composition, module3_manifest) {
-  if (!is.null(composition)) return(normalize_path(composition))
+  # Explicit composition table always has highest priority.
+  if (!is.null(composition)) {
+    composition <- normalize_path(composition)
+
+    if (!file.exists(composition)) {
+      stop_msg("Composition table not found: ", composition)
+    }
+
+    return(composition)
+  }
+
   if (is.null(module3_manifest)) {
-    stop_msg("Please provide either --composition or --module3-manifest")
+    stop_msg(
+      "Please provide either --composition or --module3-manifest"
+    )
   }
 
   manifest <- read_tsv_base(module3_manifest)
-  if (all(c("item", "path") %in% colnames(manifest))) {
-    idx <- which(manifest$item %in% c("composition_all", "module3_composition_all"))
-    if (length(idx) == 0) {
-      idx <- grep("composition.*all", manifest$item, ignore.case = TRUE)
+
+  if (nrow(manifest) == 0) {
+    stop_msg(
+      "Module 3 manifest contains no records: ",
+      module3_manifest
+    )
+  }
+
+  # Preferred wide-manifest schema.
+  direct_columns <- c(
+    "composition_all_path",
+    "module3_composition_all_path",
+    "combined_composition_path",
+    "combined_composition"
+  )
+
+  direct_hit <- direct_columns[
+    direct_columns %in% colnames(manifest)
+  ]
+
+  if (length(direct_hit) > 0) {
+    candidate_values <- unique(
+      as.character(manifest[[direct_hit[[1]]]])
+    )
+
+    candidate_values <- candidate_values[
+      !is.na(candidate_values) &
+        nzchar(trimws(candidate_values))
+    ]
+
+    if (length(candidate_values) == 0) {
+      stop_msg(
+        "Column ",
+        direct_hit[[1]],
+        " exists but contains no valid path."
+      )
     }
-    if (length(idx) > 0) return(normalize_path(manifest$path[[idx[[1]]]]))
+
+    if (length(candidate_values) > 1) {
+      stop_msg(
+        "Column ",
+        direct_hit[[1]],
+        " contains multiple different combined composition paths: ",
+        paste(candidate_values, collapse = ", ")
+      )
+    }
+
+    candidate <- normalize_path(candidate_values[[1]])
+
+    if (!file.exists(candidate)) {
+      stop_msg(
+        "Combined composition table listed in Module 3 manifest ",
+        "does not exist: ",
+        candidate
+      )
+    }
+
+    return(candidate)
   }
 
-  path_cols <- colnames(manifest)[grepl("path|file", colnames(manifest), ignore.case = TRUE)]
-  for (pc in path_cols) {
-    idx <- grep("composition.*all|module3.*composition", manifest[[pc]], ignore.case = TRUE)
-    if (length(idx) > 0) return(normalize_path(manifest[[pc]][[idx[[1]]]]))
+  # Support item/path manifests.
+  if (all(c("item", "path") %in% colnames(manifest))) {
+    normalized_items <- tolower(trimws(as.character(manifest$item)))
+
+    idx <- which(
+      normalized_items %in% c(
+        "composition_all",
+        "module3_composition_all",
+        "combined_composition"
+      )
+    )
+
+    if (length(idx) > 0) {
+      candidate <- normalize_path(
+        as.character(manifest$path[[idx[[1]]]])
+      )
+
+      if (!file.exists(candidate)) {
+        stop_msg(
+          "Combined composition table listed in Module 3 manifest ",
+          "does not exist: ",
+          candidate
+        )
+      }
+
+      return(candidate)
+    }
   }
 
-  stop_msg("Could not identify composition_all path from module3 manifest: ", module3_manifest)
+  stop_msg(
+    "Module 3 manifest does not provide a combined composition table.\n",
+    "Expected one of these columns: ",
+    paste(direct_columns, collapse = ", "),
+    "\nAvailable columns: ",
+    paste(colnames(manifest), collapse = ", "),
+    "\nThe phenotype-specific 'composition_table' column cannot be ",
+    "used as a single combined Module 4 input."
+  )
 }
 
 ##### 3. Data preparation ######################################################
