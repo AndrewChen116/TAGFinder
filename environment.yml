@@ -2,16 +2,10 @@ name: tagfinder_env
 
 channels:
   - conda-forge
+  - nodefaults
 
 dependencies:
-  # R
-  - r-base=4.1
-
-  # Build tools
+  - r-base=4.3
   - git
   - make
   - cmake>=3.20,<4
-
-  # CUDA host compiler (required for Ripser++)
-  - gcc_linux-64=8
-  - gxx_linux-64=8
