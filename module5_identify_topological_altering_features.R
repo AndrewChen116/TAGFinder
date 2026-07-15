@@ -126,8 +126,23 @@ as_logical_arg <- function(x, default = FALSE) {
 }
 
 normalize_path_safe <- function(path) {
-  if (is.null(path) || is.na(path) || path == "") return(path)
-  normalizePath(path, mustWork = FALSE)
+  if (is.null(path)) {
+    return(NULL)
+  }
+
+  path <- as.character(path)
+  result <- path
+
+  valid <- !is.na(path) & nzchar(trimws(path))
+
+  if (any(valid)) {
+    result[valid] <- normalizePath(
+      path.expand(path[valid]),
+      mustWork = FALSE
+    )
+  }
+
+  result
 }
 
 read_tsv <- function(path) {
@@ -620,7 +635,17 @@ main <- function() {
       "topological_altering_features",
       "summary"
     ),
-    path = normalize_path_safe(c(degree_path, merged_path, result_path, taf_path, summary_path)),
+    path = vapply(
+      c(
+        degree_path,
+        merged_path,
+        result_path,
+        taf_path,
+        summary_path
+      ),
+      normalize_path_safe,
+      character(1)
+    ),
     stringsAsFactors = FALSE
   )
   write_tsv(manifest, manifest_path)
