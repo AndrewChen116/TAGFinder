@@ -20,7 +20,7 @@ else
 fi
 
 # 2. Clone the repository
-echo "📂 Preparing source code directories..."
+echo "Preparing source code directories..."
 mkdir -p "${INSTALL_DIR}"
 if [ ! -d "${REPO_DIR}" ]; then
     git clone --recursive https://github.com/simonzhang00/ripser-plusplus.git "${REPO_DIR}"
@@ -32,17 +32,17 @@ cd build
 rm -rf *
 
 # 3. Automatically detect system CUDA runtime library path
-echo "🔍 Searching for system libcudart.so..."
+echo "Searching for system libcudart.so..."
 CUDA_LIB=$(find /usr /usr/local -name libcudart.so 2>/dev/null | head -n 1)
 
 if [ -z "$CUDA_LIB" ]; then
     # Default back to your known system path if search fails
     CUDA_LIB="/usr/lib/x86_64-linux-gnu/libcudart.so"
 fi
-echo "📍 Using CUDA Library Path: $CUDA_LIB"
+echo "Using CUDA Library Path: $CUDA_LIB"
 
 # 4. Compile safely in the background using conda run to bypass C++17 flags
-echo "🛠️ Compiling project (Clearing Conda environment conflicts)..."
+echo "Compiling project (Clearing Conda environment conflicts)..."
 conda run --no-capture-output -n build_env bash -c "
     unset CXXFLAGS
     unset CFLAGS
