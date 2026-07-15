@@ -640,6 +640,9 @@ main <- function() {
   write_tsv(summarize_composition(combined), summary_path)
   write_tsv(matched_manifest, matched_manifest_path)
   module4_manifest <- do.call(rbind, module4_manifest_records)
+  
+  module4_manifest$composition_all_path <-
+    normalize_path_if_exists(combined_path)
   write_tsv(module4_manifest, module4_manifest_path)
 
   run_info <- data.frame(
