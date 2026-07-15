@@ -92,27 +92,13 @@ nvidia-smi
 nvcc --version
 ```
 
-Clone and compile Ripser++:
+Clone and compile Ripser++ through `install_ripser.sh` :
 ```
-git clone --recursive https://github.com/simonzhang00/ripser-plusplus.git
-cd ripser-plusplus/ripserplusplus
-```
-```
-mkdir -p build
-cd build
-```
-```
-cmake ..
-make -j 4
-```
+# Make the script executable
+chmod +x install_ripser.sh
 
-The compiled executable should be located at:
-```
-${HOME}/tools/ripser-plusplus/ripserplusplus/build/ripser++
-```
-Test the executable:
-```
-${HOME}/tools/ripser-plusplus/ripserplusplus/build/ripser++ --help
+# Run the automation script
+./install_ripser.sh
 ```
 
 ## 4. Validate the TAGFinder installation
