@@ -407,7 +407,10 @@ main <- function() {
   if (isTRUE(run_ripser)) {
     check_file_exists(ripser_bin, "Ripser++ executable")
     if (file.access(ripser_bin, mode = 1) != 0) {
-      stop_error("Ripser++ is not executable. Please run chmod +x or provide a valid --ripser-bin: ", ripser_bin)
+      stop_error(
+        "Ripser++ is not executable. Please run chmod +x or provide a valid --ripser-bin: ",
+        ripser_bin
+      )
     }
   }
 
@@ -425,15 +428,12 @@ main <- function() {
 
     message_info("Processing [", i, "/", nrow(manifest), "]: ", matrix_id)
 
-    n_rows <- NA_integer_
-    n_cols <- NA_integer_
-    validation_status <- "not_requested"
-    exit_code <- NA_integer_
-    status <- "pending"
-    error_message <- ""
-
-    tryCatch({
+    result <- tryCatch({
       check_file_exists(matrix_path, "Numeric matrix")
+
+      n_rows <- NA_integer_
+      n_cols <- NA_integer_
+      validation_status <- "not_requested"
 
       if (isTRUE(validate_matrix)) {
         validation <- validate_numeric_matrix_file(matrix_path)
@@ -452,7 +452,10 @@ main <- function() {
         input_path = matrix_path
       )
 
-      command_string <- paste(shQuote(ripser_bin), paste(shQuote(ripser_args), collapse = " "))
+      command_string <- paste(
+        shQuote(ripser_bin),
+        paste(shQuote(ripser_args), collapse = " ")
+      )
 
       if (isTRUE(run_ripser)) {
         message_info("Running Ripser++ for ", matrix_id)
@@ -463,25 +466,30 @@ main <- function() {
           ripser_args = ripser_args,
           gpu_id = gpu_id
         )
+
         if (!identical(exit_code, 0L)) {
-          stop_error("Ripser++ failed for ", matrix_id, " with exit code ", exit_code)
+          stop_error(
+            "Ripser++ failed for ", matrix_id,
+            " with exit code ", exit_code
+          )
         }
       } else {
         command_string <- paste("[parse-only]", command_string)
         if (!file.exists(raw_output)) {
-          stop_error("--run-ripser false requires existing raw output: ", raw_output)
+          stop_error(
+            "--run-ripser false requires existing raw output: ",
+            raw_output
+          )
         }
         exit_code <- 0L
       }
 
       barcode_df <- parse_ripser_output(raw_output, matrix_id = matrix_id)
       write_tsv(barcode_df, barcode_output)
-      barcode_records[[matrix_id]] <- barcode_df
-      status <- "ok"
 
-      run_records[[i]] <<- data.frame(
+      run_record <- data.frame(
         matrix_id = matrix_id,
-        matrix_path = matrix_path,
+        matrix_path = normalize_path_if_exists(matrix_path),
         n_rows = n_rows,
         n_cols = n_cols,
         validation_status = validation_status,
@@ -489,65 +497,120 @@ main <- function() {
         barcode_table = normalize_path_if_exists(barcode_output),
         ripser_command = command_string,
         exit_code = exit_code,
-        status = status,
-        error_message = error_message,
+        status = "ok",
+        error_message = "",
         stringsAsFactors = FALSE
       )
+
+      list(
+        run_record = run_record,
+        barcode = barcode_df
+      )
     }, error = function(e) {
-      status <<- "failed"
-      error_message <<- conditionMessage(e)
+      error_message <- conditionMessage(e)
       message_warn(error_message)
+
       if (!file.exists(raw_output)) {
         cat("[ERROR] ", error_message, "\n", file = raw_output, sep = "")
       } else {
-        cat("\n========== MODULE2 ERROR ==========" , "\n", file = raw_output, append = TRUE, sep = "")
-        cat(error_message, "\n", file = raw_output, append = TRUE, sep = "")
-        cat("========== END MODULE2 ERROR ==========" , "\n", file = raw_output, append = TRUE, sep = "")
+        cat(
+          "\n========== MODULE2 ERROR ==========\n",
+          file = raw_output,
+          append = TRUE
+        )
+        cat(error_message, "\n", file = raw_output, append = TRUE)
+        cat(
+          "========== END MODULE2 ERROR ==========\n",
+          file = raw_output,
+          append = TRUE
+        )
       }
 
-      run_records[[i]] <<- data.frame(
+      failed_record <- data.frame(
         matrix_id = matrix_id,
-        matrix_path = matrix_path,
-        n_rows = n_rows,
-        n_cols = n_cols,
-        validation_status = validation_status,
+        matrix_path = normalize_path_if_exists(matrix_path),
+        n_rows = NA_integer_,
+        n_cols = NA_integer_,
+        validation_status = if (isTRUE(validate_matrix)) "failed" else "not_requested",
         raw_ripser_output = normalize_path_if_exists(raw_output),
         barcode_table = normalize_path_if_exists(barcode_output),
         ripser_command = NA_character_,
-        exit_code = exit_code,
-        status = status,
+        exit_code = NA_integer_,
+        status = "failed",
         error_message = error_message,
         stringsAsFactors = FALSE
       )
 
-      if (!isTRUE(continue_on_error)) stop(e)
+      if (!isTRUE(continue_on_error)) {
+        stop(e)
+      }
+
+      list(
+        run_record = failed_record,
+        barcode = NULL
+      )
     })
+
+    run_records[[i]] <- result$run_record
+
+    if (!is.null(result$barcode)) {
+      barcode_records[[matrix_id]] <- result$barcode
+    }
   }
 
   run_manifest <- do.call(rbind, run_records)
-  run_manifest_path <- file.path(outdir, paste0(prefix, "_module2_run_manifest.tsv"))
+  if (is.null(run_manifest) || nrow(run_manifest) == 0) {
+    stop_error("Module 2 produced no run records.")
+  }
+
+  run_manifest_path <- file.path(
+    outdir,
+    paste0(prefix, "_module2_run_manifest.tsv")
+  )
   write_tsv(run_manifest, run_manifest_path)
 
   if (length(barcode_records) > 0) {
     combined_barcode <- do.call(rbind, barcode_records)
+    rownames(combined_barcode) <- NULL
   } else {
     combined_barcode <- data.frame(
-      matrix_id = character(), interval_id = integer(), homology_feature_id = character(),
-      dimension = integer(), birth = numeric(), death = numeric(), lifespan = numeric(),
-      is_infinite = logical(), raw_interval = character(), ripser_output = character(),
+      matrix_id = character(),
+      interval_id = integer(),
+      homology_feature_id = character(),
+      dimension = integer(),
+      birth = numeric(),
+      death = numeric(),
+      lifespan = numeric(),
+      is_infinite = logical(),
+      raw_interval = character(),
+      ripser_output = character(),
       stringsAsFactors = FALSE
     )
   }
 
-  combined_barcode_path <- file.path(outdir, paste0(prefix, "_module2_barcode_all.tsv"))
+  combined_barcode_path <- file.path(
+    outdir,
+    paste0(prefix, "_module2_barcode_all.tsv")
+  )
   write_tsv(combined_barcode, combined_barcode_path)
 
   summary_df <- summarize_barcode(combined_barcode)
-  summary_path <- file.path(outdir, paste0(prefix, "_module2_homology_summary.tsv"))
+  summary_path <- file.path(
+    outdir,
+    paste0(prefix, "_module2_homology_summary.tsv")
+  )
   write_tsv(summary_df, summary_path)
 
-  module3_manifest <- run_manifest[run_manifest$status == "ok", c("matrix_id", "matrix_path", "raw_ripser_output", "barcode_table"), drop = FALSE]
-  module3_manifest_path <- file.path(outdir, paste0(prefix, "_module3_input_manifest.tsv"))
+  module3_manifest <- run_manifest[
+    run_manifest$status == "ok",
+    c("matrix_id", "matrix_path", "raw_ripser_output", "barcode_table"),
+    drop = FALSE
+  ]
+
+  module3_manifest_path <- file.path(
+    outdir,
+    paste0(prefix, "_module3_input_manifest.tsv")
+  )
   write_tsv(module3_manifest, module3_manifest_path)
 
   message_info("Module 2 completed.")
@@ -555,10 +618,24 @@ main <- function() {
   message_info("Combined barcode table: ", combined_barcode_path)
   message_info("Homology summary: ", summary_path)
   message_info("Module 3 input manifest: ", module3_manifest_path)
+  message_info(
+    "Successful run(s): ", sum(run_manifest$status == "ok"),
+    "; failed run(s): ", sum(run_manifest$status != "ok")
+  )
 
   failed_n <- sum(run_manifest$status != "ok")
   if (failed_n > 0) {
-    message_warn("Module 2 completed with ", failed_n, " failed run(s). See run manifest for details.")
+    message_warn(
+      "Module 2 completed with ", failed_n,
+      " failed run(s). See run manifest for details."
+    )
+  }
+
+  if (nrow(module3_manifest) == 0) {
+    stop_error(
+      "Module 2 produced no successful records for Module 3. ",
+      "Inspect: ", run_manifest_path
+    )
   }
 }
 
