@@ -68,7 +68,7 @@ Topological-altering Feature Identification
 ## Clone repository
 
 ```bash
-git clone https://github.com/PaoyangLab/TAGFinder.git
+git clone https://github.com/AndrewChen116/TAGFinder.git
 
 cd TAGFinder
 ```
