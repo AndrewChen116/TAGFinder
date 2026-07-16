@@ -8,7 +8,7 @@ echo "   (CUDA 10.1 + GCC 8 Compatibility Mode)"
 echo "=================================================="
 
 # Define installation paths
-INSTALL_DIR="${HOME}/tools"
+INSTALL_DIR="./"
 REPO_DIR="${INSTALL_DIR}/ripser-plusplus"
 
 # 1. Check and create the dedicated Conda build environment
