@@ -10,20 +10,28 @@ The example dataset contains:
 - 59 control samples
 - 141 cancer samples
 
-The commands below include only required arguments. All optional settings use
-the defaults defined by the current TAGFinder scripts. Run the commands from
-the TAGFinder repository root.
 
 ## Step 0. Prepare the environment
 
 Follow the [installation guideline](https://github.com/AndrewChen116/TAGFinder#installation) to download TAGFinder and setup the environment
 
-> Activate the TAGFinder Conda environment:
-
+> Download TAGFinder
 ```bash
+git clone https://github.com/AndrewChen116/TAGFinder.git
+cd TAGFinder
+```
+
+> Setup environment through Conda
+```bash
+conda env create -f environment.yml
 conda activate tagfinder_env
 ```
 
+> Download Ripser++
+```bash
+chmod +x install_ripser.sh
+./install_ripser.sh
+```
 
 Create the result directories automatically by running the modules below. Each
 module creates its own output directory if it does not already exist.
