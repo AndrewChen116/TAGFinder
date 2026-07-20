@@ -144,6 +144,7 @@ results/module2/
 threshold, lifespan, and infinite-death status of one topological feature.
 
 Figure:
+
 <img width="864" height="432" alt="analysis_module2_barcode_plot" src="https://github.com/user-attachments/assets/2f3e71fd-62a5-4fdb-b991-b055ff147b7c" />
 
 
