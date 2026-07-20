@@ -19,6 +19,8 @@
 #   4) Per-network homology summary table
 #   5) Module 3 input manifest
 #   6) Run manifest recording commands, exit codes, and output paths
+#   7) Overlaid H0 and H1 topological-index plots (PNG and/or PDF)
+#   8) Plot manifest recording dimension-specific figure paths
 #
 # Design principles:
 #   - no hard-coded paths
@@ -88,6 +90,14 @@ print_usage <- function() {
 "  --validate-matrix <true|false>  Validate numeric matrix shape before running. Default: true\n",
 "  --run-ripser <true|false>       If false, only parse existing raw outputs. Default: true\n",
 "  --continue-on-error <true|false> Continue if one matrix fails. Default: true\n\n",
+"Plot arguments:\n",
+"  --make-plots <true|false> Generate overlaid H0/H1 plots. Default: true\n",
+"  --plot-format <png|pdf|both> Figure format. Default: both\n",
+"  --plot-labels <a,b>      Optional comma-separated group labels in input-list order.\n",
+"  --plot-colors <a,b>      Optional comma-separated colors. Default: #56B4E9,#E64B4B\n",
+"  --plot-width <numeric>   Figure width in inches. Default: 6\n",
+"  --plot-height <numeric>  Figure height in inches. Default: 6\n",
+"  --plot-dpi <integer>     PNG resolution. Default: 300\n\n",
 "Example:\n",
 "  Rscript module2_persistent_homology.R \\\n",
 "    --input-list module1_output/demo_module2_ripser_input_list.txt \\\n",
@@ -364,7 +374,226 @@ summarize_barcode <- function(barcode_df) {
   do.call(rbind, out)
 }
 
-##### 6. Main #################################################################
+##### 6. Topological-index plotting ###########################################
+
+# Each persistence interval is drawn as a horizontal segment from birth to
+# death. Within each group and homology dimension, intervals are ordered by
+# displayed death and then birth. This rank is the topological index. Infinite
+# intervals are displayed up to the largest finite filtration value present in
+# the plotted dimension (or the Ripser++ threshold if no finite endpoint exists).
+prepare_topological_index_data <- function(barcode_df, dimension, group_order,
+                                           ripser_threshold) {
+  plot_df <- barcode_df[
+    barcode_df$dimension == dimension &
+      is.finite(barcode_df$birth) &
+      !is.na(barcode_df$matrix_id),
+    ,
+    drop = FALSE
+  ]
+
+  if (nrow(plot_df) == 0) return(plot_df)
+
+  finite_endpoints <- c(
+    plot_df$birth[is.finite(plot_df$birth)],
+    plot_df$death[is.finite(plot_df$death)]
+  )
+  finite_endpoints <- finite_endpoints[is.finite(finite_endpoints)]
+
+  if (length(finite_endpoints) > 0) {
+    display_cap <- max(finite_endpoints, na.rm = TRUE)
+  } else {
+    display_cap <- ripser_threshold
+  }
+  if (!is.finite(display_cap) || display_cap <= 0) {
+    display_cap <- if (is.finite(ripser_threshold) && ripser_threshold > 0) {
+      ripser_threshold
+    } else {
+      1
+    }
+  }
+
+  plot_df$display_death <- plot_df$death
+  plot_df$display_death[!is.finite(plot_df$display_death)] <- display_cap
+  plot_df$display_death <- pmax(plot_df$display_death, plot_df$birth)
+  plot_df$matrix_id <- factor(plot_df$matrix_id, levels = group_order)
+
+  indexed_groups <- lapply(group_order, function(group_id) {
+    df <- plot_df[as.character(plot_df$matrix_id) == group_id, , drop = FALSE]
+    if (nrow(df) == 0) return(NULL)
+    df <- df[order(df$display_death, df$birth, df$interval_id), , drop = FALSE]
+    df$topological_index <- seq_len(nrow(df))
+    df
+  })
+  indexed_groups <- indexed_groups[!vapply(indexed_groups, is.null, logical(1))]
+  if (length(indexed_groups) == 0) return(plot_df[0, , drop = FALSE])
+
+  out <- do.call(rbind, indexed_groups)
+  rownames(out) <- NULL
+  attr(out, "display_cap") <- display_cap
+  out
+}
+
+draw_topological_index_plot <- function(plot_df, dimension, group_order,
+                                        group_labels, group_colors) {
+  if (nrow(plot_df) == 0) {
+    plot.new()
+    title(main = paste0("H", dimension, " persistent homology"))
+    text(0.5, 0.5, paste0("No H", dimension, " intervals were detected"))
+    return(invisible(NULL))
+  }
+
+  display_cap <- attr(plot_df, "display_cap")
+  x_min <- min(0, plot_df$birth, na.rm = TRUE)
+  x_max <- max(display_cap, plot_df$display_death, na.rm = TRUE)
+  if (!is.finite(x_max) || x_max <= x_min) x_max <- x_min + 1
+  y_max <- max(plot_df$topological_index, na.rm = TRUE)
+  if (!is.finite(y_max) || y_max < 1) y_max <- 1
+
+  old_par <- par(no.readonly = TRUE)
+  on.exit(par(old_par), add = TRUE)
+  par(mar = c(5.0, 5.2, 3.2, 1.0), las = 1)
+
+  plot(
+    NA_real_, NA_real_,
+    xlim = c(x_min, x_max),
+    ylim = c(0, y_max),
+    xlab = "threshold",
+    ylab = "topological index",
+    main = paste0("H", dimension, " persistent homology"),
+    bty = "l",
+    xaxs = "i",
+    yaxs = "i"
+  )
+  grid(col = "grey90", lty = 1)
+
+  alpha_colors <- grDevices::adjustcolor(group_colors, alpha.f = 0.5)
+  group_counts <- integer(length(group_order))
+
+  for (i in seq_along(group_order)) {
+    group_df <- plot_df[
+      as.character(plot_df$matrix_id) == group_order[[i]],
+      ,
+      drop = FALSE
+    ]
+    group_counts[[i]] <- nrow(group_df)
+    if (nrow(group_df) == 0) next
+    segments(
+      x0 = group_df$birth,
+      y0 = group_df$topological_index,
+      x1 = group_df$display_death,
+      y1 = group_df$topological_index,
+      col = alpha_colors[[i]],
+      lwd = 1.2
+    )
+  }
+
+  legend(
+    "bottomright",
+    legend = paste0(group_labels, " (n=", format(group_counts, big.mark = ","), ")"),
+    col = alpha_colors,
+    lwd = 4,
+    bty = "n",
+    cex = 0.9
+  )
+  invisible(NULL)
+}
+
+write_topological_index_plots <- function(barcode_df, plot_dir, prefix,
+                                          max_dim, ripser_threshold,
+                                          plot_format, group_labels,
+                                          group_colors, plot_width,
+                                          plot_height, plot_dpi) {
+  group_order <- unique(as.character(barcode_df$matrix_id))
+  group_order <- group_order[!is.na(group_order) & nzchar(group_order)]
+  if (length(group_order) == 0) {
+    message_warn("No barcode groups are available for plotting.")
+    return(data.frame(
+      dimension = integer(), figure_format = character(), figure_path = character(),
+      stringsAsFactors = FALSE
+    ))
+  }
+
+  if (is.null(group_labels)) group_labels <- group_order
+  if (length(group_labels) != length(group_order)) {
+    stop_error(
+      "--plot-labels must contain exactly ", length(group_order),
+      " comma-separated label(s), matching input-list order."
+    )
+  }
+  if (length(group_colors) < length(group_order)) {
+    group_colors <- grDevices::hcl.colors(length(group_order), palette = "Dark 3")
+  } else {
+    group_colors <- group_colors[seq_along(group_order)]
+  }
+
+  dimensions_to_plot <- intersect(c(0L, 1L), seq.int(0L, max_dim))
+  plot_records <- list()
+  record_index <- 0L
+
+  for (dimension in dimensions_to_plot) {
+    plot_df <- prepare_topological_index_data(
+      barcode_df = barcode_df,
+      dimension = dimension,
+      group_order = group_order,
+      ripser_threshold = ripser_threshold
+    )
+
+    formats <- if (plot_format == "both") c("png", "pdf") else plot_format
+    for (figure_format in formats) {
+      figure_path <- file.path(
+        plot_dir,
+        paste0(prefix, "_module2_H", dimension, "_topological_index.", figure_format)
+      )
+
+      if (figure_format == "png") {
+        grDevices::png(
+          filename = figure_path,
+          width = plot_width,
+          height = plot_height,
+          units = "in",
+          res = plot_dpi
+        )
+      } else {
+        grDevices::pdf(
+          file = figure_path,
+          width = plot_width,
+          height = plot_height,
+          useDingbats = FALSE
+        )
+      }
+
+      tryCatch(
+        draw_topological_index_plot(
+          plot_df = plot_df,
+          dimension = dimension,
+          group_order = group_order,
+          group_labels = group_labels,
+          group_colors = group_colors
+        ),
+        finally = grDevices::dev.off()
+      )
+
+      record_index <- record_index + 1L
+      plot_records[[record_index]] <- data.frame(
+        dimension = dimension,
+        figure_format = figure_format,
+        figure_path = normalize_path_if_exists(figure_path),
+        stringsAsFactors = FALSE
+      )
+      message_info("H", dimension, " plot: ", figure_path)
+    }
+  }
+
+  if (length(plot_records) == 0) {
+    return(data.frame(
+      dimension = integer(), figure_format = character(), figure_path = character(),
+      stringsAsFactors = FALSE
+    ))
+  }
+  do.call(rbind, plot_records)
+}
+
+##### 7. Main #################################################################
 
 main <- function() {
   argv <- commandArgs(trailingOnly = TRUE)
@@ -390,18 +619,49 @@ main <- function() {
   validate_matrix <- as_logical_arg(get_arg(args, "validate-matrix", default = "true"))
   run_ripser <- as_logical_arg(get_arg(args, "run-ripser", default = "true"))
   continue_on_error <- as_logical_arg(get_arg(args, "continue-on-error", default = "true"))
+  make_plots <- as_logical_arg(get_arg(args, "make-plots", default = "true"))
+  plot_format <- tolower(get_arg(args, "plot-format", default = "both"))
+  plot_labels_arg <- get_arg(args, "plot-labels", default = NULL)
+  plot_colors_arg <- get_arg(args, "plot-colors", default = "#56B4E9,#E64B4B")
+  plot_width <- as.numeric(get_arg(args, "plot-width", default = "6"))
+  plot_height <- as.numeric(get_arg(args, "plot-height", default = "6"))
+  plot_dpi <- as.integer(get_arg(args, "plot-dpi", default = "300"))
+
+  plot_labels <- if (is.null(plot_labels_arg)) {
+    NULL
+  } else {
+    trimws(strsplit(plot_labels_arg, ",", fixed = TRUE)[[1]])
+  }
+  plot_colors <- trimws(strsplit(plot_colors_arg, ",", fixed = TRUE)[[1]])
 
   if (is.na(max_dim) || max_dim < 0) stop_error("--max-dim must be a non-negative integer.")
   if (is.na(threshold) || threshold < 0) stop_error("--threshold must be a non-negative number.")
   if (is.na(ratio) || ratio <= 0) stop_error("--ratio must be a positive number.")
+  if (!plot_format %in% c("png", "pdf", "both")) {
+    stop_error("--plot-format must be one of: png, pdf, both.")
+  }
+  if (!is.finite(plot_width) || plot_width <= 0) stop_error("--plot-width must be positive.")
+  if (!is.finite(plot_height) || plot_height <= 0) stop_error("--plot-height must be positive.")
+  if (is.na(plot_dpi) || plot_dpi <= 0) stop_error("--plot-dpi must be a positive integer.")
+  if (length(plot_colors) == 0 || any(!nzchar(plot_colors))) {
+    stop_error("--plot-colors must contain valid comma-separated R colors.")
+  }
+  invalid_colors <- vapply(plot_colors, function(x) {
+    inherits(try(grDevices::col2rgb(x), silent = TRUE), "try-error")
+  }, logical(1))
+  if (any(invalid_colors)) {
+    stop_error("Invalid --plot-colors value(s): ", paste(plot_colors[invalid_colors], collapse = ", "))
+  }
 
   ensure_dir(outdir)
   raw_dir <- file.path(outdir, "raw_ripser_output")
   barcode_dir <- file.path(outdir, "barcode_tables")
   log_dir <- file.path(outdir, "logs")
+  plot_dir <- file.path(outdir, "plots")
   ensure_dir(raw_dir)
   ensure_dir(barcode_dir)
   ensure_dir(log_dir)
+  if (isTRUE(make_plots)) ensure_dir(plot_dir)
 
   check_file_exists(input_list, "Input list")
   if (isTRUE(run_ripser)) {
@@ -594,6 +854,32 @@ main <- function() {
   )
   write_tsv(combined_barcode, combined_barcode_path)
 
+  plot_manifest_path <- file.path(
+    outdir,
+    paste0(prefix, "_module2_plot_manifest.tsv")
+  )
+  if (isTRUE(make_plots)) {
+    plot_manifest <- write_topological_index_plots(
+      barcode_df = combined_barcode,
+      plot_dir = plot_dir,
+      prefix = prefix,
+      max_dim = max_dim,
+      ripser_threshold = threshold,
+      plot_format = plot_format,
+      group_labels = plot_labels,
+      group_colors = plot_colors,
+      plot_width = plot_width,
+      plot_height = plot_height,
+      plot_dpi = plot_dpi
+    )
+  } else {
+    plot_manifest <- data.frame(
+      dimension = integer(), figure_format = character(), figure_path = character(),
+      stringsAsFactors = FALSE
+    )
+  }
+  write_tsv(plot_manifest, plot_manifest_path)
+
   summary_df <- summarize_barcode(combined_barcode)
   summary_path <- file.path(
     outdir,
@@ -617,6 +903,7 @@ main <- function() {
   message_info("Run manifest: ", run_manifest_path)
   message_info("Combined barcode table: ", combined_barcode_path)
   message_info("Homology summary: ", summary_path)
+  message_info("Plot manifest: ", plot_manifest_path)
   message_info("Module 3 input manifest: ", module3_manifest_path)
   message_info(
     "Successful run(s): ", sum(run_manifest$status == "ok"),
