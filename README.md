@@ -87,33 +87,52 @@ Rscript module5_identify_topological_altering_features.R --help
 
 ## Input
 
+TAGFinder requires two tab-separated input files (tsv):
+
+1. A feature table containing quantitative measurements.
+2. A metadata table defining the phenotype of each sample.
+
+Sample identifiers must be unique and consistent between the two files.
+
 ### Feature table
 
-Rows represent biological samples.
+The feature table should contain samples as rows and biological features as columns. The first column must contain sample identifiers, while all remaining columns must contain numeric values.
 
-Columns represent biological features.
+The biological features may represent genes, CpG sites, proteins, metabolites, or other molecular measurements.
 
+Example (`expression.tsv`, truncated):
+
+```text
+sample_id           SFTPC       SCGB1A1    SFTPA1      SFTPA2
+TCGA-44-3396-11A    13.9204     10.3068    13.5363     13.9022
+TCGA-55-6971-11A    14.9036      1.1403    14.9022     15.5834
+TCGA-44-2662-11A    15.0188      3.9638    14.2709     14.3635
+TCGA-44-6148-11A    14.2357     12.8331    13.6373     13.8117
+TCGA-50-5939-11A    14.4647      7.0348    13.7262     13.9106
 ```
-Sample    Feature1    Feature2    Feature3
-S1
-S2
-S3
-...
-```
 
----
+The example file contains 1,000 genes X 200 samples. Only four features and five samples are shown above.
 
 ### Metadata
 
+The metadata table must contain two columns:
+
+- `sample_id`: sample identifiers matching those in the feature table.
+- `phenotype`: the phenotype assigned to each sample.
+
+Example (`metadata.tsv`, truncated):
+
+```text
+sample_id           phenotype
+TCGA-44-3396-11A    control
+TCGA-55-6971-11A    control
+TCGA-44-2662-11A    control
+TCGA-91-6828-01A    cancer
+TCGA-91-A4BD-01A    cancer
+TCGA-73-4676-01A    cancer
 ```
-Sample    Phenotype
 
-S1        phenotype1
-
-S2        phenotype1
-
-S3        phenotype2
-```
+The example metadata contains 200 samples: 59 control samples and 141 cancer samples. 
 
 ---
 
