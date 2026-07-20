@@ -1,251 +1,270 @@
-# Tutorial
+# TAGFinder Tutorial
 
-This tutorial demonstrates the complete workflow of TAGFinder using the example RNA expression dataset.
+This tutorial demonstrates the complete TAGFinder workflow using the example
+RNA expression dataset included in this repository.
 
-The example dataset contains
+The example dataset contains:
 
 - 200 samples
-- 200 genes
-- phenotype1 (100 samples)
-- phenotype2 (100 samples)
+- 1,000 genes
+- 59 control samples
+- 141 cancer samples
 
-Running this tutorial will reproduce the complete analysis pipeline and identify Topological Altering Genes (TAGs).
+The commands below include only required arguments. All optional settings use
+the defaults defined by the current TAGFinder scripts. Run the commands from
+the TAGFinder repository root.
 
----
+## Step 0. Prepare the environment
 
-# Step 0. Prepare files
+Activate the TAGFinder Conda environment:
 
-Project structure
-
+```bash
+conda activate tagfinder_env
 ```
 
-TAGFinder/
-│
-├── module1_network_construction.R
-├── module2_persistent_homology.R
-├── module3_feature_composition.R
-├── module4_participation_score.R
-├── module5_identify_topological_altering_features.R
-│
-├── example/
-│   ├── expression.tsv
-│   └── metadata.tsv
-│
-└── results/
+The tutorial assumes that Ripser++ was installed with `install_ripser.sh` and
+is available at:
 
+```text
+./ripser-plusplus/ripserplusplus/build/ripser++
 ```
 
----
+Create the result directories automatically by running the modules below. Each
+module creates its own output directory if it does not already exist.
 
-# Step 1. Construct feature-feature networks
+## Step 1. Construct phenotype-specific networks
 
-Input
+Module 1 separates samples by phenotype, applies feature quality control, and
+constructs correlation, distance, and percentile-ranked feature networks for
+the control and cancer groups.
 
-```
+Inputs:
 
-example/expression.tsv
+- `example_data/expression.tsv`: samples in rows and genes in columns
+- `example_data/metadata.tsv`: sample identifiers and phenotype labels
 
-example/metadata.tsv
-
-```
-
-Run
+Run:
 
 ```bash
 Rscript module1_network_construction.R \
-    --feature-table example/expression.tsv \
-    --metadata example/metadata.tsv \
-    --sample-col sample_id \
-    --phenotype-col phenotype \
-    --phenotype1 phenotype1 \
-    --phenotype2 phenotype2 \
-    --outdir results/module1 \
-    --prefix example
+    --feature-table example_data/expression.tsv \
+    --metadata example_data/metadata.tsv \
+    --phenotype1 control \
+    --phenotype2 cancer \
+    --outdir results/module1
 ```
 
-Expected outputs
+The default prefix is `analysis`. Main outputs include:
 
-```
-
+```text
 results/module1/
-
-phenotype1/
-correlation.tsv
-distance.tsv
-topPct.tsv
-topPct.numeric.tsv
-
-phenotype2/
-correlation.tsv
-distance.tsv
-topPct.tsv
-topPct.numeric.tsv
-
-network_summary.tsv
-
-module1_manifest.tsv
-
-module2_ripser_input_list.txt
-
+├── analysis_control_correlation_matrix.tsv
+├── analysis_control_distance_matrix.tsv
+├── analysis_control_topPct_matrix.tsv
+├── analysis_control_topPct_numeric.tsv
+├── analysis_cancer_correlation_matrix.tsv
+├── analysis_cancer_distance_matrix.tsv
+├── analysis_cancer_topPct_matrix.tsv
+├── analysis_cancer_topPct_numeric.tsv
+├── analysis_module1_selected_features.tsv
+├── analysis_module1_feature_qc.tsv
+├── analysis_module1_matched_samples.tsv
+├── analysis_module1_network_summary.tsv
+├── analysis_module1_output_manifest.tsv
+└── analysis_module2_ripser_input_list.txt
 ```
 
----
+The numeric `topPct` matrices contain no row or column names and are passed to
+Ripser++ in Module 2. The output manifest retains the labeled matrices required
+by later modules.
 
-# Step 2. Persistent Homology Analysis
+## Step 2. Perform persistent homology analysis
 
-Input
+Module 2 runs Ripser++ on the two phenotype-specific filtration matrices,
+parses the persistence intervals, and summarizes the detected homology
+features. By default, homology dimensions up to H1 are calculated, and separate
+H0 and H1 topological-index plots are produced with both phenotypes overlaid.
 
-```
+Inputs:
 
-results/module1/module2_ripser_input_list.txt
+- Module 1 Ripser++ input list
+- Ripser++ executable
 
-```
-
-Run
+Run:
 
 ```bash
 Rscript module2_persistent_homology.R \
-    --input-list results/module1/example_module2_ripser_input_list.txt \
-    --ripser-bin /work4/home/kuanlin/tools/ripser-plusplus/ripserplusplus/build/ripser++ \
-    --outdir results/module2 \
-    --prefix example \
-    --max-dim 1
+    --input-list results/module1/analysis_module2_ripser_input_list.txt \
+    --ripser-bin ./ripser-plusplus/ripserplusplus/build/ripser++ \
+    --outdir results/module2
 ```
 
-Expected outputs
+Main outputs include:
 
-```
-
+```text
 results/module2/
-
-barcode/
-
-homology_summary.tsv
-
-module2_run_manifest.tsv
-
-module3_input_manifest.tsv
-
+├── raw_ripser_output/
+├── barcode_tables/
+├── plots/
+│   ├── analysis_module2_H0_topological_index.png
+│   ├── analysis_module2_H0_topological_index.pdf
+│   ├── analysis_module2_H1_topological_index.png
+│   └── analysis_module2_H1_topological_index.pdf
+├── analysis_module2_barcode_all.tsv
+├── analysis_module2_homology_summary.tsv
+├── analysis_module2_plot_manifest.tsv
+├── analysis_module2_run_manifest.tsv
+└── analysis_module3_input_manifest.tsv
 ```
 
----
+Each barcode record contains the homology dimension, birth threshold, death
+threshold, lifespan, and infinite-death status of one topological feature.
 
-# Step 3. Topological Feature Composition Analysis
+## Step 3. Determine topological feature composition
 
-Run
+Module 3 integrates the labeled Module 1 network matrices with the Module 2
+barcodes to identify the biological features composing each H1 topological
+feature. H1 is used by default.
+
+Inputs:
+
+- Module 1 output manifest
+- Module 2 manifest prepared for Module 3
+
+Run:
 
 ```bash
 Rscript module3_feature_composition.R \
-    --module1-manifest results/module1/example_module1_output_manifest.tsv \
-    --module2-manifest results/module2/example_module3_input_manifest.tsv \
-    --outdir results/module3 \
-    --prefix example \
-    --target-dim 1
+    --module1-manifest results/module1/analysis_module1_output_manifest.tsv \
+    --module2-manifest results/module2/analysis_module3_input_manifest.tsv \
+    --outdir results/module3
 ```
 
-Expected outputs
+Main outputs include:
 
-```
-
+```text
 results/module3/
-
-composition_all.tsv
-
-composition_summary.tsv
-
-module4_input_manifest.tsv
-
+├── composition_tables/
+├── analysis_module3_composition_all.tsv
+├── analysis_module3_composition_summary.tsv
+├── analysis_module3_matched_input_manifest.tsv
+└── analysis_module4_input_manifest.tsv
 ```
 
----
+The combined composition table links each persistence interval to its component
+features and provides the input for participation-score calculation.
 
-# Step 4. Participation Score Calculation
+## Step 4. Calculate participation scores
 
-Run
+Module 4 calculates feature-level participation scores from the topological
+feature compositions. It then compares cancer against control and calculates
+the change in participation score for every feature.
+
+Inputs:
+
+- Module 3 manifest prepared for Module 4
+
+Run:
 
 ```bash
 Rscript module4_participation_score.R \
-    --module3-manifest results/module3/example_module4_input_manifest.tsv \
+    --module3-manifest results/module3/analysis_module4_input_manifest.tsv \
     --outdir results/module4 \
-    --prefix example
+    --prefix analysis
 ```
 
-Expected outputs
+Main outputs include:
 
-```
-
+```text
 results/module4/
-
-participation_score_long.tsv
-
-participation_score_wide.tsv
-
-delta_participation_score.tsv
-
-module5_input_manifest.tsv
-
+├── analysis_module4_feature_composition_long.tsv
+├── analysis_module4_participation_score_long.tsv
+├── analysis_module4_participation_score_wide.tsv
+├── analysis_module4_delta_participation_score.tsv
+├── analysis_module4_top_abs_delta_participation_score.tsv
+├── analysis_module4_score_summary.tsv
+└── analysis_module5_input_manifest.tsv
 ```
 
----
+For each feature, the delta score is calculated as the cancer participation
+score minus the control participation score. A positive value therefore means
+increased participation in cancer-associated topological features.
 
-# Step 5. Identify Topological Altering Genes
+## Step 5. Identify topological-altering genes
 
-Run
+Module 5 tests whether each observed delta participation score is unusual
+relative to features with similar network degree. Empirical P-values are
+adjusted using the Benjamini-Hochberg procedure to identify topological-altering
+genes (TAGs).
+
+Inputs:
+
+- Module 4 manifest prepared for Module 5
+- Module 1 output manifest containing the phenotype-specific networks
+
+Run:
 
 ```bash
 Rscript module5_identify_topological_altering_features.R \
-    --module4-manifest results/module4/example_module5_input_manifest.tsv \
-    --module1-manifest results/module1/example_module1_output_manifest.tsv \
+    --module4-manifest results/module4/analysis_module5_input_manifest.tsv \
+    --module1-manifest results/module1/analysis_module1_output_manifest.tsv \
     --outdir results/module5 \
-    --prefix example \
-    --phenotype1 phenotype1 \
-    --phenotype2 phenotype2 \
-    --degree-matrix-type topPct \
+    --prefix analysis \
+    --phenotype1 control \
+    --phenotype2 cancer \
     --degree-threshold 5
 ```
 
-Expected outputs
+With the default `topPct` degree matrix, `--degree-threshold 5` defines an edge
+as belonging to the top 5% of network connections.
 
-```
+Main outputs include:
 
+```text
 results/module5/
-
-network_degree_table.tsv
-
-degree_matched_null_result.tsv
-
-topological_altering_features.tsv
-
-summary.tsv
-
+├── plots/
+│   ├── analysis_module5_volcano_plot.png
+│   └── analysis_module5_volcano_plot.pdf
+├── analysis_module5_network_degree_table.tsv
+├── analysis_module5_merged_score_degree_table.tsv
+├── analysis_module5_degree_matched_null_result.tsv
+├── analysis_module5_topological_altering_features.tsv
+├── analysis_module5_volcano_data.tsv
+├── analysis_module5_summary.tsv
+└── analysis_module5_output_manifest.tsv
 ```
 
----
+The main final result is:
 
-# Final Results
-
-The final output file is
-
+```text
+results/module5/analysis_module5_topological_altering_features.tsv
 ```
 
-results/module5/
-
-example_module5_topological_altering_features.tsv
-
-```
-
-Each row corresponds to one candidate Topological Altering Gene (TAG).
-
-The output includes
+Important result columns include:
 
 | Column | Description |
-|----------|-------------|
-| feature_id | Gene name |
-| participation_score_phenotype1 | Participation score in phenotype1 |
-| participation_score_phenotype2 | Participation score in phenotype2 |
-| delta_participation_score | Difference between phenotypes |
-| degree_phenotype1 | Network degree in phenotype1 |
-| degree_phenotype2 | Network degree in phenotype2 |
-| empirical_pvalue | Degree-matched empirical P-value |
-| qvalue | Benjamini-Hochberg adjusted P-value |
-| significant | Significant TAG |
+|---|---|
+| `feature_id` | Biological feature identifier, such as a gene symbol |
+| `score_tested` | Delta participation score tested in Module 5 |
+| `degree_reference` | Network degree used for background matching |
+| `n_degree_matched` | Number of degree-matched background features |
+| `degree_matched_z` | Standardized delta score relative to the matched background |
+| `empirical_p_value` | Degree-matched empirical P-value |
+| `q_value` | Benjamini-Hochberg adjusted P-value |
+| `direction` | Increased or decreased participation from control to cancer |
+
+## Workflow summary
+
+```text
+Feature table + metadata
+        ↓
+Module 1: phenotype-specific networks
+        ↓
+Module 2: persistent homology and barcodes
+        ↓
+Module 3: topological feature composition
+        ↓
+Module 4: participation and delta scores
+        ↓
+Module 5: degree-matched testing and TAG identification
+```
