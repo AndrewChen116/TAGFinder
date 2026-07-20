@@ -377,10 +377,12 @@ summarize_barcode <- function(barcode_df) {
 ##### 6. Topological-index plotting ###########################################
 
 # Each persistence interval is drawn as a horizontal segment from birth to
-# death. Within each group and homology dimension, intervals are ordered by
-# displayed death and then birth. This rank is the topological index. Infinite
-# intervals are displayed up to the largest finite filtration value present in
-# the plotted dimension (or the Ripser++ threshold if no finite endpoint exists).
+# death. Within each group, H0 intervals are ordered by displayed death, whereas
+# intervals in H1 and all higher dimensions are ordered by birth. The other
+# endpoint and interval_id are used as deterministic tie-breakers. This rank is
+# the topological index. Infinite intervals are displayed up to the largest
+# finite filtration value present in the plotted dimension (or the Ripser++
+# threshold if no finite endpoint exists).
 prepare_topological_index_data <- function(barcode_df, dimension, group_order,
                                            ripser_threshold) {
   plot_df <- barcode_df[
@@ -420,7 +422,21 @@ prepare_topological_index_data <- function(barcode_df, dimension, group_order,
   indexed_groups <- lapply(group_order, function(group_id) {
     df <- plot_df[as.character(plot_df$matrix_id) == group_id, , drop = FALSE]
     if (nrow(df) == 0) return(NULL)
-    df <- df[order(df$display_death, df$birth, df$interval_id), , drop = FALSE]
+    if (dimension == 0L) {
+      # H0 components are indexed by the threshold at which they merge/die.
+      df <- df[
+        order(df$display_death, df$birth, df$interval_id),
+        ,
+        drop = FALSE
+      ]
+    } else {
+      # Cycles and higher-dimensional features are indexed by their appearance.
+      df <- df[
+        order(df$birth, df$display_death, df$interval_id),
+        ,
+        drop = FALSE
+      ]
+    }
     df$topological_index <- seq_len(nrow(df))
     df
   })
