@@ -3,14 +3,14 @@
 This tutorial demonstrates the complete TAGFinder workflow using the example
 RNA expression dataset included in this repository.
 
-### The example dataset contains:
+#### The example dataset contains:
 
 - 200 samples
 - 1,000 genes
 - 59 control samples
 - 141 cancer samples
 
-### Tested Environment
+#### Tested Environment
 
 | Component | Specification |
 |---|---|
