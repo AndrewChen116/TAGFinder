@@ -16,7 +16,7 @@ The software is designed for any feature-by-sample matrix, including transcripto
 
 ---
 
-## Overview
+## Tutotial
 
 See [Tutorial.md](Tutorial.md) for the QuickStart workflow.
 
