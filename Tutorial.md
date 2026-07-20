@@ -123,6 +123,7 @@ results/module2/
 > Each barcode record contains the homology dimension, birth threshold, death
 threshold, lifespan, and infinite-death status of one topological feature.
 
+Figure:
 <img width="864" height="432" alt="analysis_module2_barcode_plot" src="https://github.com/user-attachments/assets/2f3e71fd-62a5-4fdb-b991-b055ff147b7c" />
 
 
@@ -244,7 +245,7 @@ Figure:
 
 <img width="3600" height="1800" alt="analysis_module5_volcano_plot" src="https://github.com/user-attachments/assets/c4f56822-8849-414a-a1a4-00df5f979d50" />
 
-The main final result is:
+### The main final result is:
 
 ```text
 results/module5/analysis_module5_topological_altering_features.tsv
