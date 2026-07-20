@@ -43,65 +43,65 @@ parse_args <- function() {
   args <- commandArgs(trailingOnly = TRUE)
   if (length(args) == 0 || any(args %in% c("-h", "--help"))) {
     cat(
-"Module 5: Topological-altering feature identification\n\n",
-"Usage:\n",
-"  Rscript module5_identify_topological_altering_features.R \\\n",
-"    --module4-manifest module4_output/demo_module5_input_manifest.tsv \\\n",
-"    --module1-manifest module1_output/demo_module1_output_manifest.tsv \\\n",
-"    --outdir module5_output \\\n",
-"    --prefix demo \\\n",
-"    --phenotype1 phenotype1 \\\n",
-"    --phenotype2 phenotype2 \\\n",
-"    --degree-matrix-type topPct \\\n",
-"    --degree-threshold 5\n\n",
-"Alternative using explicit delta table:\n",
-"  Rscript module5_identify_topological_altering_features.R \\\n",
-"    --delta-score module4_output/demo_module4_delta_participation_score.tsv \\\n",
-"    --module1-manifest module1_output/demo_module1_output_manifest.tsv \\\n",
-"    --outdir module5_output \\\n",
-"    --prefix demo \\\n",
-"    --phenotype1 phenotype1 \\\n",
-"    --phenotype2 phenotype2 \\\n",
-"    --degree-matrix-type topPct \\\n",
-"    --degree-threshold 5\n\n",
-"Required arguments:\n",
-"  --module1-manifest       Module 1 output manifest TSV\n",
-"  --outdir                 Output directory\n",
-"  --prefix                 Output prefix\n",
-"  --phenotype1             Baseline phenotype label\n",
-"  --phenotype2             Comparison phenotype label\n",
-"  --degree-threshold       Threshold for network degree calculation\n",
-"                           If --degree-matrix-type topPct, use e.g. 5 for top 5% strongest edges.\n",
-"                           If --degree-matrix-type distance, edges are 0 < distance <= threshold.\n\n",
-"Input arguments, choose one:\n",
-"  --delta-score            Module 4 delta participation score TSV\n",
-"  --module4-manifest       Module 4 manifest containing delta_participation_score path\n\n",
-"Optional arguments:\n",
-"  --degree-matrix-type     topPct or distance [default: topPct]\n",
-"  --score-col              Delta score column to test [default: delta_participation_score_lifespan_sum]\n",
-"  --degree-reference       avg, phenotype1, or phenotype2 [default: avg]\n",
-"  --min-matched            Minimum degree-matched background size [default: 20]\n",
-"  --max-window             Maximum degree-matching window [default: 50]\n",
-"  --alternative            two.sided, greater, or less [default: two.sided]\n",
-"  --q-cutoff               BH q-value cutoff for TAFs [default: 0.05]\n",
-"  --p-cutoff               Optional raw p-value cutoff; NA disables [default: NA]\n",
-"  --min-abs-delta          Minimum absolute delta score for TAFs [default: 0]\n",
-"  --exclude-zero-degree    TRUE/FALSE. Exclude degree-zero features from empirical test [default: FALSE]\n",
-"  --pseudocount            Empirical p-value pseudocount [default: 1]\n\n",
-"Volcano plot arguments:\n",
-"  --make-volcano           TRUE/FALSE [default: TRUE]\n",
-"  --volcano-format         png, pdf, or both [default: both]\n",
-"  --volcano-p-cutoff       Raw empirical p-value cutoff used for plot colors [default: 0.05]\n",
-"  --volcano-delta-cutoff   Absolute delta-score cutoff used for plot colors\n",
-"                           [default: the value of --min-abs-delta]\n",
-"  --volcano-width          Figure width in inches [default: 8]\n",
-"  --volcano-height         Figure height in inches [default: 6]\n",
-"  --volcano-dpi            PNG resolution [default: 300]\n",
-"  --volcano-point-size     Point-size multiplier [default: 0.65]\n\n",
-sep = "")
+      "Module 5: Topological-altering feature identification\n\n",
+      "Usage:\n",
+      "  Rscript module5_identify_topological_altering_features.R \\\n",
+      "    --module4-manifest module4_output/demo_module5_input_manifest.tsv \\\n",
+      "    --module1-manifest module1_output/demo_module1_output_manifest.tsv \\\n",
+      "    --outdir module5_output \\\n",
+      "    --prefix demo \\\n",
+      "    --phenotype1 phenotype1 \\\n",
+      "    --phenotype2 phenotype2 \\\n",
+      "    --degree-matrix-type topPct \\\n",
+      "    --degree-threshold 5\n\n",
+      "Alternative using explicit delta table:\n",
+      "  Rscript module5_identify_topological_altering_features.R \\\n",
+      "    --delta-score module4_output/demo_module4_delta_participation_score.tsv \\\n",
+      "    --module1-manifest module1_output/demo_module1_output_manifest.tsv \\\n",
+      "    --outdir module5_output \\\n",
+      "    --prefix demo \\\n",
+      "    --phenotype1 phenotype1 \\\n",
+      "    --phenotype2 phenotype2 \\\n",
+      "    --degree-matrix-type topPct \\\n",
+      "    --degree-threshold 5\n\n",
+      "Required arguments:\n",
+      "  --module1-manifest       Module 1 output manifest TSV\n",
+      "  --outdir                 Output directory\n",
+      "  --prefix                 Output prefix\n",
+      "  --phenotype1             Baseline phenotype label\n",
+      "  --phenotype2             Comparison phenotype label\n",
+      "  --degree-threshold       Threshold for network degree calculation\n",
+      "                           If --degree-matrix-type topPct, use e.g. 5 for top 5% strongest edges.\n",
+      "                           If --degree-matrix-type distance, edges are 0 < distance <= threshold.\n\n",
+      "Input arguments, choose one:\n",
+      "  --delta-score            Module 4 delta participation score TSV\n",
+      "  --module4-manifest       Module 4 manifest containing delta_participation_score path\n\n",
+      "Optional arguments:\n",
+      "  --degree-matrix-type     topPct or distance [default: topPct]\n",
+      "  --score-col              Delta score column to test [default: delta_participation_score_lifespan_sum]\n",
+      "  --degree-reference       avg, phenotype1, or phenotype2 [default: avg]\n",
+      "  --min-matched            Minimum degree-matched background size [default: 20]\n",
+      "  --max-window             Maximum degree-matching window [default: 50]\n",
+      "  --alternative            two.sided, greater, or less [default: two.sided]\n",
+      "  --q-cutoff               BH q-value cutoff for TAFs [default: 0.05]\n",
+      "  --p-cutoff               Optional raw p-value cutoff; NA disables [default: NA]\n",
+      "  --min-abs-delta          Minimum absolute delta score for TAFs [default: 0]\n",
+      "  --exclude-zero-degree    TRUE/FALSE. Exclude degree-zero features from empirical test [default: FALSE]\n",
+      "  --pseudocount            Empirical p-value pseudocount [default: 1]\n\n",
+      "Volcano plot arguments:\n",
+      "  --make-volcano           TRUE/FALSE [default: TRUE]\n",
+      "  --volcano-format         png, pdf, or both [default: both]\n",
+      "  --volcano-p-cutoff       Raw empirical p-value cutoff used for plot colors [default: 0.05]\n",
+      "  --volcano-delta-cutoff   Absolute delta-score cutoff used for plot colors\n",
+      "                           [default: the value of --min-abs-delta]\n",
+      "  --volcano-width          Figure width in inches [default: 8]\n",
+      "  --volcano-height         Figure height in inches [default: 6]\n",
+      "  --volcano-dpi            PNG resolution [default: 300]\n",
+      "  --volcano-point-size     Point-size multiplier [default: 0.65]\n\n",
+      sep = "")
     quit(status = 0)
   }
-
+  
   out <- list()
   i <- 1
   while (i <= length(args)) {
@@ -141,19 +141,19 @@ normalize_path_safe <- function(path) {
   if (is.null(path)) {
     return(NULL)
   }
-
+  
   path <- as.character(path)
   result <- path
-
+  
   valid <- !is.na(path) & nzchar(trimws(path))
-
+  
   if (any(valid)) {
     result[valid] <- normalizePath(
       path.expand(path[valid]),
       mustWork = FALSE
     )
   }
-
+  
   result
 }
 
@@ -209,7 +209,7 @@ resolve_delta_score_path <- function(delta_score, module4_manifest) {
 resolve_network_paths <- function(module1_manifest, phenotype1, phenotype2, degree_matrix_type) {
   manifest <- read_tsv(module1_manifest)
   require_columns(manifest, c("phenotype"), "Module 1 manifest")
-
+  
   matrix_col <- switch(
     degree_matrix_type,
     topPct = if ("topPct_matrix" %in% colnames(manifest)) "topPct_matrix" else NA_character_,
@@ -219,7 +219,7 @@ resolve_network_paths <- function(module1_manifest, phenotype1, phenotype2, degr
   if (is.na(matrix_col)) {
     stop_msg("Module 1 manifest does not contain the required matrix column for type '", degree_matrix_type, "'.")
   }
-
+  
   get_one <- function(ph) {
     idx <- which(as.character(manifest$phenotype) == ph)
     if (length(idx) == 0 && "safe_phenotype_label" %in% colnames(manifest)) {
@@ -233,7 +233,7 @@ resolve_network_paths <- function(module1_manifest, phenotype1, phenotype2, degr
     if (is.na(path) || path == "") stop_msg("Missing ", matrix_col, " path for phenotype: ", ph)
     normalize_path_safe(path)
   }
-
+  
   list(
     phenotype1_matrix = get_one(phenotype1),
     phenotype2_matrix = get_one(phenotype2),
@@ -246,11 +246,11 @@ resolve_network_paths <- function(module1_manifest, phenotype1, phenotype2, degr
 read_named_square_matrix <- function(path) {
   df <- read_tsv(path)
   if (ncol(df) < 2) stop_msg("Matrix file must contain a feature_id column plus numeric columns: ", path)
-
+  
   feature_col <- colnames(df)[[1]]
   features <- as.character(df[[feature_col]])
   if (anyDuplicated(features)) stop_msg("Duplicated feature IDs in matrix row names: ", path)
-
+  
   mat_df <- df[, -1, drop = FALSE]
   col_features <- colnames(mat_df)
   if (length(features) != length(col_features)) {
@@ -266,7 +266,7 @@ read_named_square_matrix <- function(path) {
       stop_msg("Matrix row and column feature IDs do not match in file: ", path)
     }
   }
-
+  
   mat <- as.matrix(mat_df)
   suppressWarnings(storage.mode(mat) <- "numeric")
   if (any(is.na(mat))) stop_msg("Matrix contains NA or non-numeric values: ", path)
@@ -282,24 +282,24 @@ compute_degree_from_matrix <- function(mat, threshold, matrix_type, phenotype) {
     stop_msg("Degree matrix row/column names are not identical for phenotype: ", phenotype)
   }
   if (is.na(threshold) || !is.finite(threshold)) stop_msg("degree-threshold must be finite.")
-
+  
   if (matrix_type == "topPct") {
     if (threshold < 0 || threshold > 100) stop_msg("For topPct degree matrix, --degree-threshold must be between 0 and 100.")
   }
   if (matrix_type == "distance" && threshold < 0) {
     stop_msg("For distance degree matrix, --degree-threshold must be >= 0.")
   }
-
+  
   upper <- upper.tri(mat, diag = FALSE)
   edge_mask <- (mat > 0) & (mat <= threshold) & is.finite(mat)
   edge_mask[!upper] <- FALSE
-
+  
   degree <- integer(nrow(mat))
   ij <- which(edge_mask, arr.ind = TRUE)
   if (nrow(ij) > 0) {
     degree <- tabulate(c(ij[, 1], ij[, 2]), nbins = nrow(mat))
   }
-
+  
   data.frame(
     feature_id = rownames(mat),
     phenotype = phenotype,
@@ -313,7 +313,7 @@ make_degree_table <- function(path1, path2, phenotype1, phenotype2, threshold, m
   mat1 <- read_named_square_matrix(path1)
   message_info("Reading ", matrix_type, " matrix for ", phenotype2, ": ", path2)
   mat2 <- read_named_square_matrix(path2)
-
+  
   common_features <- intersect(rownames(mat1), rownames(mat2))
   if (length(common_features) == 0) stop_msg("No common features between phenotype matrices.")
   if (length(common_features) < nrow(mat1) || length(common_features) < nrow(mat2)) {
@@ -322,14 +322,14 @@ make_degree_table <- function(path1, path2, phenotype1, phenotype2, threshold, m
   common_features <- sort(common_features)
   mat1 <- mat1[common_features, common_features, drop = FALSE]
   mat2 <- mat2[common_features, common_features, drop = FALSE]
-
+  
   d1 <- compute_degree_from_matrix(mat1, threshold, matrix_type, phenotype1)
   d2 <- compute_degree_from_matrix(mat2, threshold, matrix_type, phenotype2)
   names(d1)[names(d1) == "degree"] <- paste0("degree_", phenotype1)
   names(d2)[names(d2) == "degree"] <- paste0("degree_", phenotype2)
   d1$phenotype <- NULL
   d2$phenotype <- NULL
-
+  
   out <- merge(d1, d2, by = "feature_id", all = TRUE, sort = FALSE)
   c1 <- paste0("degree_", phenotype1)
   c2 <- paste0("degree_", phenotype2)
@@ -370,7 +370,7 @@ select_degree_reference <- function(df, phenotype1, phenotype2, degree_reference
 empirical_pvalue_one <- function(target_score, matched_scores, alternative, pseudocount) {
   matched_scores <- matched_scores[is.finite(matched_scores)]
   if (length(matched_scores) == 0 || !is.finite(target_score)) return(NA_real_)
-
+  
   if (alternative == "greater") {
     return((pseudocount + sum(matched_scores >= target_score)) / (pseudocount + length(matched_scores)))
   }
@@ -388,25 +388,25 @@ empirical_pvalue_one <- function(target_score, matched_scores, alternative, pseu
 compute_degree_matched_test <- function(df, score_col, degree_col, min_matched, max_window,
                                         alternative, pseudocount, exclude_zero_degree) {
   require_columns(df, c("feature_id", score_col, degree_col), "merged Module 5 input table")
-
+  
   test_df <- df[!is.na(df[[score_col]]) & is.finite(df[[score_col]]) &
                   !is.na(df[[degree_col]]) & is.finite(df[[degree_col]]), , drop = FALSE]
   if (exclude_zero_degree) {
     test_df <- test_df[test_df[[degree_col]] > 0, , drop = FALSE]
   }
   if (nrow(test_df) == 0) stop_msg("No valid features remain for empirical testing.")
-
+  
   feature_ids <- test_df$feature_id
   scores <- test_df[[score_col]]
   degrees <- test_df[[degree_col]]
   max_degree_diff <- max(abs(outer(degrees, degrees, "-")), na.rm = TRUE)
-
+  
   result <- vector("list", length(feature_ids))
   for (i in seq_along(feature_ids)) {
     target_gene <- feature_ids[[i]]
     target_score <- scores[[i]]
     target_degree <- degrees[[i]]
-
+    
     window <- 0
     matched_idx <- integer(0)
     reason <- "ok"
@@ -423,19 +423,19 @@ compute_degree_matched_test <- function(df, score_col, degree_col, min_matched, 
         break
       }
     }
-
+    
     matched_scores <- scores[matched_idx]
     p_value <- if (length(matched_scores) >= min_matched) {
       empirical_pvalue_one(target_score, matched_scores, alternative, pseudocount)
     } else {
       NA_real_
     }
-
+    
     matched_mean <- if (length(matched_scores) > 0) mean(matched_scores, na.rm = TRUE) else NA_real_
     matched_median <- if (length(matched_scores) > 0) median(matched_scores, na.rm = TRUE) else NA_real_
     matched_sd <- if (length(matched_scores) > 1) stats::sd(matched_scores, na.rm = TRUE) else NA_real_
     z_score <- if (!is.na(matched_sd) && matched_sd > 0) (target_score - matched_mean) / matched_sd else NA_real_
-
+    
     result[[i]] <- data.frame(
       feature_id = target_gene,
       score_tested = target_score,
@@ -451,7 +451,7 @@ compute_degree_matched_test <- function(df, score_col, degree_col, min_matched, 
       stringsAsFactors = FALSE
     )
   }
-
+  
   out <- do.call(rbind, result)
   out$q_value <- stats::p.adjust(out$empirical_p_value, method = "BH")
   out[order(out$q_value, -abs(out$score_tested), out$feature_id), , drop = FALSE]
@@ -480,27 +480,27 @@ prepare_volcano_data <- function(result_df, volcano_p_cutoff,
     c("feature_id", "score_tested", "empirical_p_value", "q_value"),
     "Module 5 test result"
   )
-
+  
   volcano_df <- result_df[, c(
     "feature_id", "score_tested", "empirical_p_value", "q_value"
   ), drop = FALSE]
   volcano_df$score_tested <- suppressWarnings(as.numeric(volcano_df$score_tested))
   volcano_df$empirical_p_value <- suppressWarnings(as.numeric(volcano_df$empirical_p_value))
   volcano_df$q_value <- suppressWarnings(as.numeric(volcano_df$q_value))
-
+  
   valid <- is.finite(volcano_df$score_tested) &
     is.finite(volcano_df$empirical_p_value) &
     volcano_df$empirical_p_value >= 0 &
     volcano_df$empirical_p_value <= 1
   volcano_df <- volcano_df[valid, , drop = FALSE]
-
+  
   if (nrow(volcano_df) == 0) {
     volcano_df$plot_p_value <- numeric()
     volcano_df$minus_log10_p <- numeric()
     volcano_df$volcano_category <- character()
     return(volcano_df)
   }
-
+  
   positive_p <- volcano_df$empirical_p_value[
     volcano_df$empirical_p_value > 0 & is.finite(volcano_df$empirical_p_value)
   ]
@@ -509,11 +509,11 @@ prepare_volcano_data <- function(result_df, volcano_p_cutoff,
   } else {
     .Machine$double.xmin
   }
-
+  
   volcano_df$plot_p_value <- volcano_df$empirical_p_value
   volcano_df$plot_p_value[volcano_df$plot_p_value == 0] <- zero_replacement
   volcano_df$minus_log10_p <- -log10(volcano_df$plot_p_value)
-
+  
   significant <- volcano_df$empirical_p_value < volcano_p_cutoff &
     abs(volcano_df$score_tested) >= volcano_delta_cutoff
   volcano_df$volcano_category <- "Not significant"
@@ -523,7 +523,7 @@ prepare_volcano_data <- function(result_df, volcano_p_cutoff,
   volcano_df$volcano_category[
     significant & volcano_df$score_tested < 0
   ] <- "Significant decrease"
-
+  
   category_levels <- c(
     "Not significant", "Significant decrease", "Significant increase"
   )
@@ -541,7 +541,7 @@ draw_volcano_plot <- function(volcano_df, volcano_p_cutoff,
     layout(matrix(1))
     par(old_par)
   }, add = TRUE)
-
+  
   if (nrow(volcano_df) == 0) {
     par(mar = c(5.1, 5.3, 2.0, 2.0), las = 1)
     plot.new()
@@ -549,13 +549,13 @@ draw_volcano_plot <- function(volcano_df, volcano_p_cutoff,
     text(0.5, 0.5, "No valid empirical p-values available")
     return(invisible(NULL))
   }
-
+  
   category_colors <- c(
     "Not significant" = grDevices::adjustcolor("black", alpha.f = 0.42),
     "Significant decrease" = grDevices::adjustcolor("#2536E8", alpha.f = 0.82),
     "Significant increase" = grDevices::adjustcolor("#FF2A1A", alpha.f = 0.82)
   )
-
+  
   # Use separate plotting and legend panels. This prevents the legend from
   # covering data points or being clipped by the device boundary, independent
   # of the score range or the number of digits in category counts.
@@ -564,7 +564,7 @@ draw_volcano_plot <- function(volcano_df, volcano_p_cutoff,
     heights = c(4.5, 1.5)
   )
   par(mar = c(4.8, 5.3, 1.0, 1.0), las = 1, xpd = FALSE)
-
+  
   x_values <- volcano_df$score_tested
   y_values <- volcano_df$minus_log10_p
   x_range <- range(x_values, finite = TRUE)
@@ -575,7 +575,7 @@ draw_volcano_plot <- function(volcano_df, volcano_p_cutoff,
     x_range <- center + c(-1, 1)
   }
   if (!is.finite(y_max) || y_max <= 0) y_max <- 1
-
+  
   x_padding <- 0.04 * diff(x_range)
   plot(
     NA_real_, NA_real_,
@@ -588,7 +588,7 @@ draw_volcano_plot <- function(volcano_df, volcano_p_cutoff,
     yaxs = "i"
   )
   grid(col = "grey90", lty = 1)
-
+  
   abline(
     h = -log10(volcano_p_cutoff),
     col = "grey40",
@@ -605,7 +605,7 @@ draw_volcano_plot <- function(volcano_df, volcano_p_cutoff,
   } else {
     abline(v = 0, col = "grey40", lty = 2, lwd = 1)
   }
-
+  
   draw_order <- c(
     "Not significant", "Significant decrease", "Significant increase"
   )
@@ -620,7 +620,7 @@ draw_volcano_plot <- function(volcano_df, volcano_p_cutoff,
       col = category_colors[[category]]
     )
   }
-
+  
   category_counts <- table(factor(
     volcano_df$volcano_category,
     levels = draw_order
@@ -639,7 +639,7 @@ draw_volcano_plot <- function(volcano_df, volcano_p_cutoff,
       format(category_counts[["Not significant"]], big.mark = ","), ")"
     )
   )
-
+  
   significance_rule <- paste0(
     "Volcano classification: P < ", format(volcano_p_cutoff),
     if (volcano_delta_cutoff > 0) {
@@ -648,7 +648,7 @@ draw_volcano_plot <- function(volcano_df, volcano_p_cutoff,
       ""
     }
   )
-
+  
   # Draw the legend in a dedicated lower panel rather than inside or outside
   # the scatter-plot coordinates.
   par(mar = c(0.2, 5.3, 0.2, 1.0), xpd = FALSE)
@@ -677,14 +677,14 @@ write_volcano_plots <- function(volcano_df, plot_dir, prefix,
   dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
   formats <- if (volcano_format == "both") c("png", "pdf") else volcano_format
   plot_paths <- character(length(formats))
-
+  
   for (i in seq_along(formats)) {
     figure_format <- formats[[i]]
     figure_path <- file.path(
       plot_dir,
       paste0(prefix, "_module5_volcano_plot.", figure_format)
     )
-
+    
     if (figure_format == "png") {
       grDevices::png(
         filename = figure_path,
@@ -701,7 +701,7 @@ write_volcano_plots <- function(volcano_df, plot_dir, prefix,
         useDingbats = FALSE
       )
     }
-
+    
     tryCatch(
       draw_volcano_plot(
         volcano_df = volcano_df,
@@ -711,11 +711,11 @@ write_volcano_plots <- function(volcano_df, plot_dir, prefix,
       ),
       finally = grDevices::dev.off()
     )
-
+    
     plot_paths[[i]] <- normalize_path_safe(figure_path)
     message_info("Volcano plot: ", figure_path)
   }
-
+  
   names(plot_paths) <- paste0("volcano_plot_", formats)
   plot_paths
 }
@@ -776,13 +776,13 @@ make_summary <- function(delta_df, degree_df, merged_df, result_df, taf_df, phen
 
 main <- function() {
   args <- parse_args()
-
+  
   module1_manifest <- normalize_path_safe(get_arg(args, "module1-manifest", required = TRUE))
   outdir <- normalize_path_safe(get_arg(args, "outdir", required = TRUE))
   prefix <- get_arg(args, "prefix", required = TRUE)
   phenotype1 <- get_arg(args, "phenotype1", required = TRUE)
   phenotype2 <- get_arg(args, "phenotype2", required = TRUE)
-
+  
   delta_score_arg <- get_arg(args, "delta-score", default = NULL)
   module4_manifest_arg <- get_arg(args, "module4-manifest", default = NULL)
   degree_matrix_type <- get_arg(args, "degree-matrix-type", default = "topPct")
@@ -814,7 +814,7 @@ main <- function() {
   volcano_height <- as.numeric(get_arg(args, "volcano-height", default = "6"))
   volcano_dpi <- as.integer(get_arg(args, "volcano-dpi", default = "300"))
   volcano_point_size <- as.numeric(get_arg(args, "volcano-point-size", default = "0.65"))
-
+  
   if (!degree_matrix_type %in% c("topPct", "distance")) stop_msg("--degree-matrix-type must be topPct or distance.")
   if (!degree_reference %in% c("avg", "phenotype1", "phenotype2")) stop_msg("--degree-reference must be avg, phenotype1, or phenotype2.")
   if (!alternative %in% c("two.sided", "greater", "less")) stop_msg("--alternative must be two.sided, greater, or less.")
@@ -842,13 +842,13 @@ main <- function() {
     stop_msg("--volcano-point-size must be positive.")
   }
   if (identical(phenotype1, phenotype2)) stop_msg("phenotype1 and phenotype2 must be different.")
-
+  
   dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
-
+  
   delta_path <- resolve_delta_score_path(delta_score_arg, module4_manifest_arg)
   message_info("Reading Module 4 delta score table: ", delta_path)
   delta_df <- prepare_delta_table(read_tsv(delta_path), score_col)
-
+  
   network_paths <- resolve_network_paths(module1_manifest, phenotype1, phenotype2, degree_matrix_type)
   degree_df <- make_degree_table(
     path1 = network_paths$phenotype1_matrix,
@@ -858,15 +858,15 @@ main <- function() {
     threshold = degree_threshold,
     matrix_type = degree_matrix_type
   )
-
+  
   degree_col <- select_degree_reference(degree_df, phenotype1, phenotype2, degree_reference)
-
+  
   merged_df <- merge(delta_df, degree_df, by = "feature_id", all.x = TRUE, sort = FALSE)
   if (any(is.na(merged_df[[degree_col]]))) {
     n_missing <- sum(is.na(merged_df[[degree_col]]))
     message_warn(n_missing, " features in Module 4 delta table have no degree information and will be excluded from testing.")
   }
-
+  
   result_core <- compute_degree_matched_test(
     df = merged_df,
     score_col = score_col,
@@ -877,24 +877,24 @@ main <- function() {
     pseudocount = pseudocount,
     exclude_zero_degree = exclude_zero_degree
   )
-
+  
   # Add selected upstream columns back into result table.
   result_df <- merge(result_core, merged_df, by = "feature_id", all.x = TRUE, sort = FALSE)
   result_df <- result_df[order(result_df$q_value, -abs(result_df$score_tested), result_df$feature_id), , drop = FALSE]
-
+  
   taf_df <- identify_tafs(
     result_df = result_df,
     q_cutoff = q_cutoff,
     p_cutoff = p_cutoff,
     min_abs_delta = min_abs_delta
   )
-
+  
   volcano_df <- prepare_volcano_data(
     result_df = result_df,
     volcano_p_cutoff = volcano_p_cutoff,
     volcano_delta_cutoff = volcano_delta_cutoff
   )
-
+  
   degree_path <- file.path(outdir, paste0(prefix, "_module5_network_degree_table.tsv"))
   merged_path <- file.path(outdir, paste0(prefix, "_module5_merged_score_degree_table.tsv"))
   result_path <- file.path(outdir, paste0(prefix, "_module5_degree_matched_null_result.tsv"))
@@ -904,7 +904,7 @@ main <- function() {
   plot_dir <- file.path(outdir, "plots")
   manifest_path <- file.path(outdir, paste0(prefix, "_module5_output_manifest.tsv"))
   run_info_path <- file.path(outdir, paste0(prefix, "_module5_run_info.tsv"))
-
+  
   summary_df <- make_summary(
     delta_df = delta_df,
     degree_df = degree_df,
@@ -924,14 +924,14 @@ main <- function() {
     p_cutoff = p_cutoff,
     min_abs_delta = min_abs_delta
   )
-
+  
   write_tsv(degree_df, degree_path)
   write_tsv(merged_df, merged_path)
   write_tsv(result_df, result_path)
   write_tsv(taf_df, taf_path)
   write_tsv(summary_df, summary_path)
   write_tsv(volcano_df, volcano_data_path)
-
+  
   volcano_paths <- if (isTRUE(make_volcano)) {
     write_volcano_plots(
       volcano_df = volcano_df,
@@ -948,7 +948,7 @@ main <- function() {
   } else {
     character()
   }
-
+  
   manifest <- data.frame(
     item = c(
       "network_degree_table",
@@ -975,7 +975,7 @@ main <- function() {
     stringsAsFactors = FALSE
   )
   write_tsv(manifest, manifest_path)
-
+  
   run_info <- data.frame(
     parameter = c(
       "module",
@@ -1050,7 +1050,7 @@ main <- function() {
     stringsAsFactors = FALSE
   )
   write_tsv(run_info, run_info_path)
-
+  
   message_info("Module 5 completed.")
   message_info("Degree table: ", degree_path)
   message_info("Degree-matched result: ", result_path)
