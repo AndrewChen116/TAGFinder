@@ -16,25 +16,21 @@ the TAGFinder repository root.
 
 ## Step 0. Prepare the environment
 
-Activate the TAGFinder Conda environment:
+Follow the [installation guideline](https://github.com/AndrewChen116/TAGFinder#installation) to download TAGFinder and setup the environment
+
+> Activate the TAGFinder Conda environment:
 
 ```bash
 conda activate tagfinder_env
 ```
 
-The tutorial assumes that Ripser++ was installed with `install_ripser.sh` and
-is available at:
-
-```text
-./ripser-plusplus/ripserplusplus/build/ripser++
-```
 
 Create the result directories automatically by running the modules below. Each
 module creates its own output directory if it does not already exist.
 
 ## Step 1. Construct phenotype-specific networks
 
-Module 1 separates samples by phenotype, applies feature quality control, and
+> Module 1 separates samples by phenotype, applies feature quality control, and
 constructs correlation, distance, and percentile-ranked feature networks for
 the control and cancer groups.
 
@@ -54,7 +50,9 @@ Rscript module1_network_construction.R \
     --outdir results/module1
 ```
 
-The default prefix is `analysis`. Main outputs include:
+Outputs:
+
+> The default prefix is `analysis`. 
 
 ```text
 results/module1/
@@ -80,7 +78,7 @@ by later modules.
 
 ## Step 2. Perform persistent homology analysis
 
-Module 2 runs Ripser++ on the two phenotype-specific filtration matrices,
+> Module 2 runs Ripser++ on the two phenotype-specific filtration matrices,
 parses the persistence intervals, and summarizes the detected homology
 features. By default, homology dimensions up to H1 are calculated, and separate
 H0 and H1 topological-index plots are produced with both phenotypes overlaid.
@@ -99,7 +97,7 @@ Rscript module2_persistent_homology.R \
     --outdir results/module2
 ```
 
-Main outputs include:
+Outputs:
 
 ```text
 results/module2/
@@ -116,13 +114,14 @@ results/module2/
 ├── analysis_module2_run_manifest.tsv
 └── analysis_module3_input_manifest.tsv
 ```
+<img width="864" height="432" alt="analysis_module2_barcode_plot" src="https://github.com/user-attachments/assets/2f3e71fd-62a5-4fdb-b991-b055ff147b7c" />
 
 Each barcode record contains the homology dimension, birth threshold, death
 threshold, lifespan, and infinite-death status of one topological feature.
 
 ## Step 3. Determine topological feature composition
 
-Module 3 integrates the labeled Module 1 network matrices with the Module 2
+> Module 3 integrates the labeled Module 1 network matrices with the Module 2
 barcodes to identify the biological features composing each H1 topological
 feature. H1 is used by default.
 
@@ -156,7 +155,7 @@ features and provides the input for participation-score calculation.
 
 ## Step 4. Calculate participation scores
 
-Module 4 calculates feature-level participation scores from the topological
+> Module 4 calculates feature-level participation scores from the topological
 feature compositions. It then compares cancer against control and calculates
 the change in participation score for every feature.
 
@@ -173,7 +172,7 @@ Rscript module4_participation_score.R \
     --prefix analysis
 ```
 
-Main outputs include:
+Outputs:
 
 ```text
 results/module4/
@@ -192,7 +191,7 @@ increased participation in cancer-associated topological features.
 
 ## Step 5. Identify topological-altering genes
 
-Module 5 tests whether each observed delta participation score is unusual
+> Module 5 tests whether each observed delta participation score is unusual
 relative to features with similar network degree. Empirical P-values are
 adjusted using the Benjamini-Hochberg procedure to identify topological-altering
 genes (TAGs).
@@ -218,7 +217,7 @@ Rscript module5_identify_topological_altering_features.R \
 With the default `topPct` degree matrix, `--degree-threshold 5` defines an edge
 as belonging to the top 5% of network connections.
 
-Main outputs include:
+Outputs:
 
 ```text
 results/module5/
@@ -233,6 +232,10 @@ results/module5/
 ├── analysis_module5_summary.tsv
 └── analysis_module5_output_manifest.tsv
 ```
+
+Figure:
+
+<img width="3600" height="1800" alt="analysis_module5_volcano_plot" src="https://github.com/user-attachments/assets/c4f56822-8849-414a-a1a4-00df5f979d50" />
 
 The main final result is:
 
@@ -252,19 +255,3 @@ Important result columns include:
 | `empirical_p_value` | Degree-matched empirical P-value |
 | `q_value` | Benjamini-Hochberg adjusted P-value |
 | `direction` | Increased or decreased participation from control to cancer |
-
-## Workflow summary
-
-```text
-Feature table + metadata
-        ↓
-Module 1: phenotype-specific networks
-        ↓
-Module 2: persistent homology and barcodes
-        ↓
-Module 3: topological feature composition
-        ↓
-Module 4: participation and delta scores
-        ↓
-Module 5: degree-matched testing and TAG identification
-```
