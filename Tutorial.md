@@ -33,9 +33,6 @@ chmod +x install_ripser.sh
 ./install_ripser.sh
 ```
 
-> Create the result directories automatically by running the modules below. Each
-module creates its own output directory if it does not already exist.
-
 ## Step 1. Construct phenotype-specific networks
 
 > Module 1 separates samples by phenotype, applies feature quality control, and
