@@ -18,6 +18,8 @@
 #   <prefix>_module5_degree_matched_null_result.tsv
 #   <prefix>_module5_topological_altering_features.tsv
 #   <prefix>_module5_summary.tsv
+#   <prefix>_module5_volcano_data.tsv
+#   plots/<prefix>_module5_volcano_plot.png and/or .pdf
 #   <prefix>_module5_output_manifest.tsv
 #   <prefix>_module5_run_info.tsv
 #
@@ -86,6 +88,16 @@ parse_args <- function() {
 "  --min-abs-delta          Minimum absolute delta score for TAFs [default: 0]\n",
 "  --exclude-zero-degree    TRUE/FALSE. Exclude degree-zero features from empirical test [default: FALSE]\n",
 "  --pseudocount            Empirical p-value pseudocount [default: 1]\n\n",
+"Volcano plot arguments:\n",
+"  --make-volcano           TRUE/FALSE [default: TRUE]\n",
+"  --volcano-format         png, pdf, or both [default: both]\n",
+"  --volcano-p-cutoff       Raw empirical p-value cutoff used for plot colors [default: 0.05]\n",
+"  --volcano-delta-cutoff   Absolute delta-score cutoff used for plot colors\n",
+"                           [default: the value of --min-abs-delta]\n",
+"  --volcano-width          Figure width in inches [default: 8]\n",
+"  --volcano-height         Figure height in inches [default: 6]\n",
+"  --volcano-dpi            PNG resolution [default: 300]\n",
+"  --volcano-point-size     Point-size multiplier [default: 0.65]\n\n",
 sep = "")
     quit(status = 0)
   }
@@ -455,6 +467,233 @@ identify_tafs <- function(result_df, q_cutoff, p_cutoff, min_abs_delta) {
   taf[order(taf$q_value, -abs(taf$score_tested), taf$feature_id), , drop = FALSE]
 }
 
+##### 5. Volcano plot #########################################################
+
+# The volcano plot deliberately uses raw empirical p-values on the y-axis,
+# matching the conventional -log10(P) definition. Its color classification is
+# therefore controlled by volcano_p_cutoff and volcano_delta_cutoff. Formal TAF
+# calls remain controlled separately by q_cutoff, p_cutoff, and min_abs_delta.
+prepare_volcano_data <- function(result_df, volcano_p_cutoff,
+                                 volcano_delta_cutoff) {
+  require_columns(
+    result_df,
+    c("feature_id", "score_tested", "empirical_p_value", "q_value"),
+    "Module 5 test result"
+  )
+
+  volcano_df <- result_df[, c(
+    "feature_id", "score_tested", "empirical_p_value", "q_value"
+  ), drop = FALSE]
+  volcano_df$score_tested <- suppressWarnings(as.numeric(volcano_df$score_tested))
+  volcano_df$empirical_p_value <- suppressWarnings(as.numeric(volcano_df$empirical_p_value))
+  volcano_df$q_value <- suppressWarnings(as.numeric(volcano_df$q_value))
+
+  valid <- is.finite(volcano_df$score_tested) &
+    is.finite(volcano_df$empirical_p_value) &
+    volcano_df$empirical_p_value >= 0 &
+    volcano_df$empirical_p_value <= 1
+  volcano_df <- volcano_df[valid, , drop = FALSE]
+
+  if (nrow(volcano_df) == 0) {
+    volcano_df$plot_p_value <- numeric()
+    volcano_df$minus_log10_p <- numeric()
+    volcano_df$volcano_category <- character()
+    return(volcano_df)
+  }
+
+  positive_p <- volcano_df$empirical_p_value[
+    volcano_df$empirical_p_value > 0 & is.finite(volcano_df$empirical_p_value)
+  ]
+  zero_replacement <- if (length(positive_p) > 0) {
+    max(min(positive_p) / 10, .Machine$double.xmin)
+  } else {
+    .Machine$double.xmin
+  }
+
+  volcano_df$plot_p_value <- volcano_df$empirical_p_value
+  volcano_df$plot_p_value[volcano_df$plot_p_value == 0] <- zero_replacement
+  volcano_df$minus_log10_p <- -log10(volcano_df$plot_p_value)
+
+  significant <- volcano_df$empirical_p_value < volcano_p_cutoff &
+    abs(volcano_df$score_tested) >= volcano_delta_cutoff
+  volcano_df$volcano_category <- "Not significant"
+  volcano_df$volcano_category[
+    significant & volcano_df$score_tested > 0
+  ] <- "Significant increase"
+  volcano_df$volcano_category[
+    significant & volcano_df$score_tested < 0
+  ] <- "Significant decrease"
+
+  category_levels <- c(
+    "Not significant", "Significant decrease", "Significant increase"
+  )
+  volcano_df$volcano_category <- factor(
+    volcano_df$volcano_category,
+    levels = category_levels
+  )
+  volcano_df[order(volcano_df$volcano_category, volcano_df$empirical_p_value), , drop = FALSE]
+}
+
+draw_volcano_plot <- function(volcano_df, volcano_p_cutoff,
+                              volcano_delta_cutoff, point_size) {
+  old_par <- par(no.readonly = TRUE)
+  on.exit(par(old_par), add = TRUE)
+  par(mar = c(5.1, 5.3, 2.0, 10.5), las = 1, xpd = FALSE)
+
+  if (nrow(volcano_df) == 0) {
+    plot.new()
+    title(main = "Volcano plot")
+    text(0.5, 0.5, "No valid empirical p-values available")
+    return(invisible(NULL))
+  }
+
+  category_colors <- c(
+    "Not significant" = grDevices::adjustcolor("black", alpha.f = 0.42),
+    "Significant decrease" = grDevices::adjustcolor("#2536E8", alpha.f = 0.82),
+    "Significant increase" = grDevices::adjustcolor("#FF2A1A", alpha.f = 0.82)
+  )
+
+  x_values <- volcano_df$score_tested
+  y_values <- volcano_df$minus_log10_p
+  x_range <- range(x_values, finite = TRUE)
+  finite_y <- y_values[is.finite(y_values)]
+  y_max <- if (length(finite_y) > 0) max(finite_y) else NA_real_
+  if (!all(is.finite(x_range)) || diff(x_range) == 0) {
+    center <- if (all(is.finite(x_range))) x_range[[1]] else 0
+    x_range <- center + c(-1, 1)
+  }
+  if (!is.finite(y_max) || y_max <= 0) y_max <- 1
+
+  x_padding <- 0.04 * diff(x_range)
+  plot(
+    NA_real_, NA_real_,
+    xlim = x_range + c(-x_padding, x_padding),
+    ylim = c(0, y_max * 1.05),
+    xlab = expression(Delta~score),
+    ylab = expression(-log[10](italic(P)~value)),
+    bty = "l",
+    xaxs = "i",
+    yaxs = "i"
+  )
+  grid(col = "grey90", lty = 1)
+
+  abline(
+    h = -log10(volcano_p_cutoff),
+    col = "grey40",
+    lty = 2,
+    lwd = 1
+  )
+  if (volcano_delta_cutoff > 0) {
+    abline(
+      v = c(-volcano_delta_cutoff, volcano_delta_cutoff),
+      col = "grey40",
+      lty = 2,
+      lwd = 1
+    )
+  } else {
+    abline(v = 0, col = "grey40", lty = 2, lwd = 1)
+  }
+
+  draw_order <- c(
+    "Not significant", "Significant decrease", "Significant increase"
+  )
+  for (category in draw_order) {
+    df <- volcano_df[as.character(volcano_df$volcano_category) == category, , drop = FALSE]
+    if (nrow(df) == 0) next
+    points(
+      x = df$score_tested,
+      y = df$minus_log10_p,
+      pch = 16,
+      cex = point_size,
+      col = category_colors[[category]]
+    )
+  }
+
+  category_counts <- table(factor(
+    volcano_df$volcano_category,
+    levels = draw_order
+  ))
+  legend_labels <- c(
+    paste0(
+      "Significant increase (P < ", format(volcano_p_cutoff),
+      "; n=", format(category_counts[["Significant increase"]], big.mark = ","), ")"
+    ),
+    paste0(
+      "Significant decrease (P < ", format(volcano_p_cutoff),
+      "; n=", format(category_counts[["Significant decrease"]], big.mark = ","), ")"
+    ),
+    paste0(
+      "Not significant (n=",
+      format(category_counts[["Not significant"]], big.mark = ","), ")"
+    )
+  )
+  legend(
+    "topright",
+    inset = c(-0.48, 0),
+    legend = legend_labels,
+    col = category_colors[c(
+      "Significant increase", "Significant decrease", "Not significant"
+    )],
+    pch = 16,
+    pt.cex = 1.2,
+    bty = "n",
+    cex = 0.85,
+    xpd = NA
+  )
+  invisible(NULL)
+}
+
+write_volcano_plots <- function(volcano_df, plot_dir, prefix,
+                                volcano_p_cutoff, volcano_delta_cutoff,
+                                volcano_format, volcano_width,
+                                volcano_height, volcano_dpi,
+                                volcano_point_size) {
+  dir.create(plot_dir, recursive = TRUE, showWarnings = FALSE)
+  formats <- if (volcano_format == "both") c("png", "pdf") else volcano_format
+  plot_paths <- character(length(formats))
+
+  for (i in seq_along(formats)) {
+    figure_format <- formats[[i]]
+    figure_path <- file.path(
+      plot_dir,
+      paste0(prefix, "_module5_volcano_plot.", figure_format)
+    )
+
+    if (figure_format == "png") {
+      grDevices::png(
+        filename = figure_path,
+        width = volcano_width,
+        height = volcano_height,
+        units = "in",
+        res = volcano_dpi
+      )
+    } else {
+      grDevices::pdf(
+        file = figure_path,
+        width = volcano_width,
+        height = volcano_height,
+        useDingbats = FALSE
+      )
+    }
+
+    tryCatch(
+      draw_volcano_plot(
+        volcano_df = volcano_df,
+        volcano_p_cutoff = volcano_p_cutoff,
+        volcano_delta_cutoff = volcano_delta_cutoff,
+        point_size = volcano_point_size
+      ),
+      finally = grDevices::dev.off()
+    )
+
+    plot_paths[[i]] <- normalize_path_safe(figure_path)
+    message_info("Volcano plot: ", figure_path)
+  }
+
+  names(plot_paths) <- paste0("volcano_plot_", formats)
+  plot_paths
+}
+
 make_summary <- function(delta_df, degree_df, merged_df, result_df, taf_df, phenotype1, phenotype2,
                          degree_matrix_type, degree_threshold, score_col, degree_col,
                          min_matched, max_window, alternative, q_cutoff, p_cutoff, min_abs_delta) {
@@ -507,7 +746,7 @@ make_summary <- function(delta_df, degree_df, merged_df, result_df, taf_df, phen
   )
 }
 
-##### 5. Main #################################################################
+##### 6. Main #################################################################
 
 main <- function() {
   args <- parse_args()
@@ -533,6 +772,22 @@ main <- function() {
   min_abs_delta <- as.numeric(get_arg(args, "min-abs-delta", default = "0"))
   exclude_zero_degree <- as_logical_arg(get_arg(args, "exclude-zero-degree", default = "FALSE"), default = FALSE)
   pseudocount <- as.numeric(get_arg(args, "pseudocount", default = "1"))
+  make_volcano <- as_logical_arg(
+    get_arg(args, "make-volcano", default = "TRUE"),
+    default = TRUE
+  )
+  volcano_format <- tolower(get_arg(args, "volcano-format", default = "both"))
+  volcano_p_cutoff <- as.numeric(get_arg(args, "volcano-p-cutoff", default = "0.05"))
+  volcano_delta_cutoff_arg <- get_arg(args, "volcano-delta-cutoff", default = NULL)
+  volcano_delta_cutoff <- if (is.null(volcano_delta_cutoff_arg)) {
+    min_abs_delta
+  } else {
+    as.numeric(volcano_delta_cutoff_arg)
+  }
+  volcano_width <- as.numeric(get_arg(args, "volcano-width", default = "8"))
+  volcano_height <- as.numeric(get_arg(args, "volcano-height", default = "6"))
+  volcano_dpi <- as.integer(get_arg(args, "volcano-dpi", default = "300"))
+  volcano_point_size <- as.numeric(get_arg(args, "volcano-point-size", default = "0.65"))
 
   if (!degree_matrix_type %in% c("topPct", "distance")) stop_msg("--degree-matrix-type must be topPct or distance.")
   if (!degree_reference %in% c("avg", "phenotype1", "phenotype2")) stop_msg("--degree-reference must be avg, phenotype1, or phenotype2.")
@@ -545,6 +800,21 @@ main <- function() {
   if (!is.na(p_cutoff) && (p_cutoff < 0 || p_cutoff > 1)) stop_msg("--p-cutoff must be NA or between 0 and 1.")
   if (!is.finite(min_abs_delta) || min_abs_delta < 0) stop_msg("--min-abs-delta must be >= 0.")
   if (!is.finite(pseudocount) || pseudocount < 0) stop_msg("--pseudocount must be >= 0.")
+  if (!volcano_format %in% c("png", "pdf", "both")) {
+    stop_msg("--volcano-format must be png, pdf, or both.")
+  }
+  if (!is.finite(volcano_p_cutoff) || volcano_p_cutoff <= 0 || volcano_p_cutoff > 1) {
+    stop_msg("--volcano-p-cutoff must be > 0 and <= 1.")
+  }
+  if (!is.finite(volcano_delta_cutoff) || volcano_delta_cutoff < 0) {
+    stop_msg("--volcano-delta-cutoff must be >= 0.")
+  }
+  if (!is.finite(volcano_width) || volcano_width <= 0) stop_msg("--volcano-width must be positive.")
+  if (!is.finite(volcano_height) || volcano_height <= 0) stop_msg("--volcano-height must be positive.")
+  if (is.na(volcano_dpi) || volcano_dpi <= 0) stop_msg("--volcano-dpi must be a positive integer.")
+  if (!is.finite(volcano_point_size) || volcano_point_size <= 0) {
+    stop_msg("--volcano-point-size must be positive.")
+  }
   if (identical(phenotype1, phenotype2)) stop_msg("phenotype1 and phenotype2 must be different.")
 
   dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
@@ -593,11 +863,19 @@ main <- function() {
     min_abs_delta = min_abs_delta
   )
 
+  volcano_df <- prepare_volcano_data(
+    result_df = result_df,
+    volcano_p_cutoff = volcano_p_cutoff,
+    volcano_delta_cutoff = volcano_delta_cutoff
+  )
+
   degree_path <- file.path(outdir, paste0(prefix, "_module5_network_degree_table.tsv"))
   merged_path <- file.path(outdir, paste0(prefix, "_module5_merged_score_degree_table.tsv"))
   result_path <- file.path(outdir, paste0(prefix, "_module5_degree_matched_null_result.tsv"))
   taf_path <- file.path(outdir, paste0(prefix, "_module5_topological_altering_features.tsv"))
   summary_path <- file.path(outdir, paste0(prefix, "_module5_summary.tsv"))
+  volcano_data_path <- file.path(outdir, paste0(prefix, "_module5_volcano_data.tsv"))
+  plot_dir <- file.path(outdir, "plots")
   manifest_path <- file.path(outdir, paste0(prefix, "_module5_output_manifest.tsv"))
   run_info_path <- file.path(outdir, paste0(prefix, "_module5_run_info.tsv"))
 
@@ -626,6 +904,24 @@ main <- function() {
   write_tsv(result_df, result_path)
   write_tsv(taf_df, taf_path)
   write_tsv(summary_df, summary_path)
+  write_tsv(volcano_df, volcano_data_path)
+
+  volcano_paths <- if (isTRUE(make_volcano)) {
+    write_volcano_plots(
+      volcano_df = volcano_df,
+      plot_dir = plot_dir,
+      prefix = prefix,
+      volcano_p_cutoff = volcano_p_cutoff,
+      volcano_delta_cutoff = volcano_delta_cutoff,
+      volcano_format = volcano_format,
+      volcano_width = volcano_width,
+      volcano_height = volcano_height,
+      volcano_dpi = volcano_dpi,
+      volcano_point_size = volcano_point_size
+    )
+  } else {
+    character()
+  }
 
   manifest <- data.frame(
     item = c(
@@ -633,7 +929,9 @@ main <- function() {
       "merged_score_degree_table",
       "degree_matched_null_result",
       "topological_altering_features",
-      "summary"
+      "summary",
+      "volcano_data",
+      names(volcano_paths)
     ),
     path = vapply(
       c(
@@ -641,7 +939,9 @@ main <- function() {
         merged_path,
         result_path,
         taf_path,
-        summary_path
+        summary_path,
+        volcano_data_path,
+        unname(volcano_paths)
       ),
       normalize_path_safe,
       character(1)
@@ -676,6 +976,14 @@ main <- function() {
       "min_abs_delta",
       "exclude_zero_degree",
       "pseudocount",
+      "make_volcano",
+      "volcano_format",
+      "volcano_p_cutoff",
+      "volcano_delta_cutoff",
+      "volcano_width",
+      "volcano_height",
+      "volcano_dpi",
+      "volcano_point_size",
       "run_time"
     ),
     value = c(
@@ -703,6 +1011,14 @@ main <- function() {
       as.character(min_abs_delta),
       as.character(exclude_zero_degree),
       as.character(pseudocount),
+      as.character(make_volcano),
+      volcano_format,
+      as.character(volcano_p_cutoff),
+      as.character(volcano_delta_cutoff),
+      as.character(volcano_width),
+      as.character(volcano_height),
+      as.character(volcano_dpi),
+      as.character(volcano_point_size),
       as.character(Sys.time())
     ),
     stringsAsFactors = FALSE
@@ -713,6 +1029,7 @@ main <- function() {
   message_info("Degree table: ", degree_path)
   message_info("Degree-matched result: ", result_path)
   message_info("Topological-altering features: ", taf_path)
+  message_info("Volcano data: ", volcano_data_path)
   message_info("Output manifest: ", manifest_path)
 }
 
