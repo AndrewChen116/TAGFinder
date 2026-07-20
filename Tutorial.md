@@ -5,20 +5,16 @@ RNA expression dataset included in this repository.
 
 #### The example dataset contains:
 
-- 200 samples
-- 1,000 genes
-- 59 control samples
-- 141 cancer samples
+- 200 samples (59 control samples and 141 cancer samples)
+- 1,000 genes (Randome selection)
 
 #### Tested Environment
 
 | Component | Specification |
 |---|---|
 | Operating System | Ubuntu 20.04.2 LTS |
-| Linux Kernel | 5.15.0-138-generic |
 | CPU | Intel Xeon Gold 6238 @ 2.10 GHz |
 | CPU Configuration | 2 sockets × 22 cores × 2 threads per core |
-| Logical CPUs | 88 |
 | Memory | 1,385.5 GiB RAM |
 | GPU | 4 × NVIDIA T4G; 1 × Tesla T4 |
 | GPU Memory | 15,360 MiB per GPU (approximately 75 GiB total) |
