@@ -34,7 +34,7 @@ The software is designed for any feature-by-sample matrix, including transcripto
 
 - R (≥ 4.3)
 - Git
-- CUDA >=10.1
+- CUDA (≥ 10.1)
 
 ### 1. Clone repository
 
