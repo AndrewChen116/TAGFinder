@@ -15,6 +15,8 @@ The software is designed for any feature-by-sample matrix, including transcripto
 
 
 ---
+See [Tutorial.md](Tutorial.md) for the QuickStart workflow.
+---
 
 ## Software Architecture
 
@@ -89,10 +91,13 @@ Rscript module5_identify_topological_altering_features.R --help
 
 TAGFinder requires two tab-separated input files (tsv):
 
-1. A feature table containing quantitative measurements.
-2. A metadata table defining the phenotype of each sample.
+    1. A feature table containing quantitative measurements.
+    2. A metadata table defining the phenotype of each sample.
 
 Sample identifiers must be unique and consistent between the two files.
+
+Example datasets are available in `example_data`
+
 
 ### Feature table
 
@@ -133,6 +138,9 @@ TCGA-73-4676-01A    cancer
 ```
 
 The example metadata contains 200 samples: 59 control samples and 141 cancer samples. 
+
+
+
 
 ---
 
@@ -455,47 +463,12 @@ Rscript module5_identify_topological_altering_features.R \
 
 ## Output
 
-```
-results/
-
-module1/
-
-module2/
-
-module3/
-
-module4/
-
-module5/
-
-summary/
-
-logs/
-```
-
 Final outputs include
 
 - Participation scores
 - Delta participation scores
 - Degree-matched statistics
-- Topological-altering features (TAFs)
-
----
-
-## Example Dataset
-
-Example datasets are available in
-
-```
-example_data/
-
-expression.tsv
-
-metadata.tsv
-```
-
-See [Tutorial.md](Tutorial.md) for the complete executable Module 1–5 workflow.
-
+- Topological-altering genes (TAGs)
 
 ---
 
