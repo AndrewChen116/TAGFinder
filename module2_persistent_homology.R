@@ -73,41 +73,41 @@ as_logical_arg <- function(x) {
 
 print_usage <- function() {
   cat(
-"\nModule 2: Persistent homology analysis\n\n",
-"Required arguments:\n",
-"  --input-list <txt>       Module 1 output list containing numeric matrix paths.\n",
-"  --ripser-bin <path>      Path to ripser++ executable.\n",
-"  --outdir <directory>     Output directory.\n\n",
-"Common optional arguments:\n",
-"  --prefix <string>        Output prefix. Default: analysis\n",
-"  --format <string>        Ripser++ format. Default: distance\n",
-"  --max-dim <integer>      Maximum homology dimension. Default: 1\n",
-"  --threshold <numeric>    Ripser++ filtration threshold. Default: 100\n",
-"  --ratio <numeric>        Ripser++ ratio argument. Default: 1\n",
-"  --sparse <true|false>    Add --sparse to Ripser++ command. Default: true\n",
-"  --gpu-id <id>            Optional CUDA_VISIBLE_DEVICES value.\n",
-"  --extra-args <string>    Extra Ripser++ arguments, passed after standard options.\n",
-"  --validate-matrix <true|false>  Validate numeric matrix shape before running. Default: true\n",
-"  --run-ripser <true|false>       If false, only parse existing raw outputs. Default: true\n",
-"  --continue-on-error <true|false> Continue if one matrix fails. Default: true\n\n",
-"Plot arguments:\n",
-"  --make-plots <true|false> Generate overlaid H0/H1 plots. Default: true\n",
-"  --plot-format <png|pdf|both> Figure format. Default: both\n",
-"  --plot-labels <a,b>      Optional comma-separated group labels in input-list order.\n",
-"  --plot-colors <a,b>      Optional comma-separated colors. Default: #56B4E9,#E64B4B\n",
-"  --plot-width <numeric>   Figure width in inches. Default: 6\n",
-"  --plot-height <numeric>  Figure height in inches. Default: 6\n",
-"  --plot-dpi <integer>     PNG resolution. Default: 300\n\n",
-"Example:\n",
-"  Rscript module2_persistent_homology.R \\\n",
-"    --input-list module1_output/demo_module2_ripser_input_list.txt \\\n",
-"    --ripser-bin /path/to/ripser++ \\\n",
-"    --outdir module2_output \\\n",
-"    --prefix demo \\\n",
-"    --max-dim 1 \\\n",
-"    --threshold 100 \\\n",
-"    --gpu-id 0\n\n",
-sep = "")
+    "\nModule 2: Persistent homology analysis\n\n",
+    "Required arguments:\n",
+    "  --input-list <txt>       Module 1 output list containing numeric matrix paths.\n",
+    "  --ripser-bin <path>      Path to ripser++ executable.\n",
+    "  --outdir <directory>     Output directory.\n\n",
+    "Common optional arguments:\n",
+    "  --prefix <string>        Output prefix. Default: analysis\n",
+    "  --format <string>        Ripser++ format. Default: distance\n",
+    "  --max-dim <integer>      Maximum homology dimension. Default: 1\n",
+    "  --threshold <numeric>    Ripser++ filtration threshold. Default: 100\n",
+    "  --ratio <numeric>        Ripser++ ratio argument. Default: 1\n",
+    "  --sparse <true|false>    Add --sparse to Ripser++ command. Default: true\n",
+    "  --gpu-id <id>            Optional CUDA_VISIBLE_DEVICES value.\n",
+    "  --extra-args <string>    Extra Ripser++ arguments, passed after standard options.\n",
+    "  --validate-matrix <true|false>  Validate numeric matrix shape before running. Default: true\n",
+    "  --run-ripser <true|false>       If false, only parse existing raw outputs. Default: true\n",
+    "  --continue-on-error <true|false> Continue if one matrix fails. Default: true\n\n",
+    "Plot arguments:\n",
+    "  --make-plots <true|false> Generate overlaid H0/H1 plots. Default: true\n",
+    "  --plot-format <png|pdf|both> Figure format. Default: both\n",
+    "  --plot-labels <a,b>      Optional comma-separated group labels in input-list order.\n",
+    "  --plot-colors <a,b>      Optional comma-separated colors. Default: #56B4E9,#E64B4B\n",
+    "  --plot-width <numeric>   Figure width in inches. Default: 6\n",
+    "  --plot-height <numeric>  Figure height in inches. Default: 6\n",
+    "  --plot-dpi <integer>     PNG resolution. Default: 300\n\n",
+    "Example:\n",
+    "  Rscript module2_persistent_homology.R \\\n",
+    "    --input-list module1_output/demo_module2_ripser_input_list.txt \\\n",
+    "    --ripser-bin /path/to/ripser++ \\\n",
+    "    --outdir module2_output \\\n",
+    "    --prefix demo \\\n",
+    "    --max-dim 1 \\\n",
+    "    --threshold 100 \\\n",
+    "    --gpu-id 0\n\n",
+    sep = "")
 }
 
 ##### 2. General utilities #####################################################
@@ -153,7 +153,7 @@ read_input_list <- function(path) {
   lines <- trimws(lines)
   lines <- lines[lines != "" & !startsWith(lines, "#")]
   if (length(lines) == 0) stop_error("Input list contains no usable matrix paths: ", path)
-
+  
   data.frame(
     matrix_id = make.unique(vapply(lines, sanitize_id, character(1)), sep = "_"),
     matrix_path = vapply(lines, normalize_path_if_exists, character(1)),
@@ -169,12 +169,12 @@ is_numeric_token <- function(x) {
 
 validate_numeric_matrix_file <- function(path) {
   check_file_exists(path, "Numeric matrix")
-
+  
   first_line <- readLines(path, n = 1, warn = FALSE)
   if (length(first_line) == 0 || trimws(first_line) == "") {
     stop_error("Numeric matrix is empty: ", path)
   }
-
+  
   first_tokens <- strsplit(first_line, "\t", fixed = TRUE)[[1]]
   if (length(first_tokens) < 2) {
     stop_error("Numeric matrix must have at least two columns: ", path)
@@ -185,7 +185,7 @@ validate_numeric_matrix_file <- function(path) {
       "Module 2 expects no row/column names: ", path
     )
   }
-
+  
   field_counts <- count.fields(path, sep = "\t", quote = "", comment.char = "")
   if (length(field_counts) == 0) stop_error("Numeric matrix has no rows: ", path)
   if (any(is.na(field_counts))) stop_error("Failed to count fields in numeric matrix: ", path)
@@ -195,13 +195,13 @@ validate_numeric_matrix_file <- function(path) {
       "; observed counts: ", paste(head(unique(field_counts), 10), collapse = ", ")
     )
   }
-
+  
   n_rows <- length(field_counts)
   n_cols <- unique(field_counts)[[1]]
   if (n_rows != n_cols) {
     stop_error("Numeric matrix must be square. Observed ", n_rows, " rows x ", n_cols, " columns: ", path)
   }
-
+  
   list(n_rows = n_rows, n_cols = n_cols)
 }
 
@@ -233,7 +233,7 @@ run_ripser_one <- function(ripser_bin, input_path, output_path, ripser_args, gpu
       Sys.setenv(CUDA_VISIBLE_DEVICES = env_old)
     }
   }, add = TRUE)
-
+  
   stdout_file <- output_path
   stderr_file <- tempfile(pattern = "ripser_stderr_")
   exit_code <- suppressWarnings(system2(
@@ -243,7 +243,7 @@ run_ripser_one <- function(ripser_bin, input_path, output_path, ripser_args, gpu
     stderr = stderr_file
   ))
   if (is.null(exit_code)) exit_code <- 0
-
+  
   stderr_text <- if (file.exists(stderr_file)) paste(readLines(stderr_file, warn = FALSE), collapse = "\n") else ""
   if (nzchar(stderr_text)) {
     cat("\n========== STDERR ==========" , "\n", file = output_path, append = TRUE, sep = "")
@@ -251,7 +251,7 @@ run_ripser_one <- function(ripser_bin, input_path, output_path, ripser_args, gpu
     cat("========== END STDERR ==========" , "\n", file = output_path, append = TRUE, sep = "")
   }
   unlink(stderr_file)
-
+  
   as.integer(exit_code)
 }
 
@@ -268,7 +268,7 @@ parse_ripser_output <- function(path, matrix_id) {
       stringsAsFactors = FALSE
     ))
   }
-
+  
   lines_trim <- trimws(lines)
   dim_match <- regexec("^persistence intervals in dim[[:space:]]+([0-9]+)[[:space:]]*:[[:space:]]*$", lines_trim)
   dim_capture <- regmatches(lines_trim, dim_match)
@@ -276,18 +276,18 @@ parse_ripser_output <- function(path, matrix_id) {
   for (i in seq_along(dim_capture)) {
     if (length(dim_capture[[i]]) == 2) dim_vec[[i]] <- as.integer(dim_capture[[i]][[2]])
   }
-
+  
   current_dim <- NA_integer_
   active_dim <- rep(NA_integer_, length(lines_trim))
   for (i in seq_along(lines_trim)) {
     if (!is.na(dim_vec[[i]])) current_dim <- dim_vec[[i]]
     active_dim[[i]] <- current_dim
   }
-
+  
   interval_match <- regexec("^\\[[[:space:]]*([^,]+)[[:space:]]*,[[:space:]]*([^\\)]*)\\)$", lines_trim)
   interval_capture <- regmatches(lines_trim, interval_match)
   is_interval <- vapply(interval_capture, length, integer(1)) == 3 & !is.na(active_dim)
-
+  
   if (!any(is_interval)) {
     return(data.frame(
       matrix_id = character(), interval_id = integer(), homology_feature_id = character(),
@@ -296,19 +296,19 @@ parse_ripser_output <- function(path, matrix_id) {
       stringsAsFactors = FALSE
     ))
   }
-
+  
   interval_idx <- which(is_interval)
   births <- numeric(length(interval_idx))
   deaths <- numeric(length(interval_idx))
   raw_deaths <- character(length(interval_idx))
-
+  
   for (k in seq_along(interval_idx)) {
     cap <- interval_capture[[interval_idx[[k]]]]
     births[[k]] <- suppressWarnings(as.numeric(trimws(cap[[2]])))
     raw_deaths[[k]] <- trimws(cap[[3]])
     deaths[[k]] <- if (raw_deaths[[k]] == "") Inf else suppressWarnings(as.numeric(raw_deaths[[k]]))
   }
-
+  
   dims <- active_dim[interval_idx]
   interval_df <- data.frame(
     matrix_id = matrix_id,
@@ -320,11 +320,11 @@ parse_ripser_output <- function(path, matrix_id) {
     ripser_output = normalize_path_if_exists(path),
     stringsAsFactors = FALSE
   )
-
+  
   interval_df$is_infinite <- is.infinite(interval_df$death)
   interval_df$lifespan <- interval_df$death - interval_df$birth
   interval_df$lifespan[interval_df$is_infinite] <- Inf
-
+  
   interval_df <- interval_df[order(interval_df$dimension, interval_df$birth, interval_df$death), , drop = FALSE]
   interval_df$feature_index_within_dimension <- ave(
     interval_df$interval_id,
@@ -335,7 +335,7 @@ parse_ripser_output <- function(path, matrix_id) {
     "H", interval_df$dimension, "_",
     interval_df$feature_index_within_dimension
   )
-
+  
   interval_df[, c(
     "matrix_id", "interval_id", "homology_feature_id", "dimension",
     "birth", "death", "lifespan", "is_infinite", "raw_interval", "ripser_output"
@@ -352,7 +352,7 @@ summarize_barcode <- function(barcode_df) {
       stringsAsFactors = FALSE
     ))
   }
-
+  
   split_df <- split(barcode_df, paste(barcode_df$matrix_id, barcode_df$dimension, sep = "\t"))
   out <- lapply(split_df, function(df) {
     finite_df <- df[is.finite(df$death), , drop = FALSE]
@@ -392,15 +392,15 @@ prepare_topological_index_data <- function(barcode_df, dimension, group_order,
     ,
     drop = FALSE
   ]
-
+  
   if (nrow(plot_df) == 0) return(plot_df)
-
+  
   finite_endpoints <- c(
     plot_df$birth[is.finite(plot_df$birth)],
     plot_df$death[is.finite(plot_df$death)]
   )
   finite_endpoints <- finite_endpoints[is.finite(finite_endpoints)]
-
+  
   if (length(finite_endpoints) > 0) {
     display_cap <- max(finite_endpoints, na.rm = TRUE)
   } else {
@@ -413,12 +413,12 @@ prepare_topological_index_data <- function(barcode_df, dimension, group_order,
       1
     }
   }
-
+  
   plot_df$display_death <- plot_df$death
   plot_df$display_death[!is.finite(plot_df$display_death)] <- display_cap
   plot_df$display_death <- pmax(plot_df$display_death, plot_df$birth)
   plot_df$matrix_id <- factor(plot_df$matrix_id, levels = group_order)
-
+  
   indexed_groups <- lapply(group_order, function(group_id) {
     df <- plot_df[as.character(plot_df$matrix_id) == group_id, , drop = FALSE]
     if (nrow(df) == 0) return(NULL)
@@ -442,7 +442,7 @@ prepare_topological_index_data <- function(barcode_df, dimension, group_order,
   })
   indexed_groups <- indexed_groups[!vapply(indexed_groups, is.null, logical(1))]
   if (length(indexed_groups) == 0) return(plot_df[0, , drop = FALSE])
-
+  
   out <- do.call(rbind, indexed_groups)
   rownames(out) <- NULL
   attr(out, "display_cap") <- display_cap
@@ -457,18 +457,18 @@ draw_topological_index_plot <- function(plot_df, dimension, group_order,
     text(0.5, 0.5, paste0("No H", dimension, " intervals were detected"))
     return(invisible(NULL))
   }
-
+  
   display_cap <- attr(plot_df, "display_cap")
   x_min <- min(0, plot_df$birth, na.rm = TRUE)
   x_max <- max(display_cap, plot_df$display_death, na.rm = TRUE)
   if (!is.finite(x_max) || x_max <= x_min) x_max <- x_min + 1
   y_max <- max(plot_df$topological_index, na.rm = TRUE)
   if (!is.finite(y_max) || y_max < 1) y_max <- 1
-
+  
   old_par <- par(no.readonly = TRUE)
   on.exit(par(old_par), add = TRUE)
   par(mar = c(5.0, 5.2, 3.2, 1.0), las = 1)
-
+  
   plot(
     NA_real_, NA_real_,
     xlim = c(x_min, x_max),
@@ -481,10 +481,10 @@ draw_topological_index_plot <- function(plot_df, dimension, group_order,
     yaxs = "i"
   )
   grid(col = "grey90", lty = 1)
-
+  
   alpha_colors <- grDevices::adjustcolor(group_colors, alpha.f = 0.5)
   group_counts <- integer(length(group_order))
-
+  
   for (i in seq_along(group_order)) {
     group_df <- plot_df[
       as.character(plot_df$matrix_id) == group_order[[i]],
@@ -502,7 +502,7 @@ draw_topological_index_plot <- function(plot_df, dimension, group_order,
       lwd = 1.2
     )
   }
-
+  
   legend(
     "bottomright",
     legend = paste0(group_labels, " (n=", format(group_counts, big.mark = ","), ")"),
@@ -528,7 +528,7 @@ write_topological_index_plots <- function(barcode_df, plot_dir, prefix,
       stringsAsFactors = FALSE
     ))
   }
-
+  
   if (is.null(group_labels)) group_labels <- group_order
   if (length(group_labels) != length(group_order)) {
     stop_error(
@@ -541,11 +541,11 @@ write_topological_index_plots <- function(barcode_df, plot_dir, prefix,
   } else {
     group_colors <- group_colors[seq_along(group_order)]
   }
-
+  
   dimensions_to_plot <- intersect(c(0L, 1L), seq.int(0L, max_dim))
   plot_records <- list()
   record_index <- 0L
-
+  
   for (dimension in dimensions_to_plot) {
     plot_df <- prepare_topological_index_data(
       barcode_df = barcode_df,
@@ -553,14 +553,14 @@ write_topological_index_plots <- function(barcode_df, plot_dir, prefix,
       group_order = group_order,
       ripser_threshold = ripser_threshold
     )
-
+    
     formats <- if (plot_format == "both") c("png", "pdf") else plot_format
     for (figure_format in formats) {
       figure_path <- file.path(
         plot_dir,
         paste0(prefix, "_module2_H", dimension, "_topological_index.", figure_format)
       )
-
+      
       if (figure_format == "png") {
         grDevices::png(
           filename = figure_path,
@@ -577,7 +577,7 @@ write_topological_index_plots <- function(barcode_df, plot_dir, prefix,
           useDingbats = FALSE
         )
       }
-
+      
       tryCatch(
         draw_topological_index_plot(
           plot_df = plot_df,
@@ -588,7 +588,7 @@ write_topological_index_plots <- function(barcode_df, plot_dir, prefix,
         ),
         finally = grDevices::dev.off()
       )
-
+      
       record_index <- record_index + 1L
       plot_records[[record_index]] <- data.frame(
         dimension = dimension,
@@ -599,7 +599,7 @@ write_topological_index_plots <- function(barcode_df, plot_dir, prefix,
       message_info("H", dimension, " plot: ", figure_path)
     }
   }
-
+  
   if (length(plot_records) == 0) {
     return(data.frame(
       dimension = integer(), figure_format = character(), figure_path = character(),
@@ -617,14 +617,14 @@ main <- function() {
     print_usage()
     quit(save = "no", status = 0)
   }
-
+  
   args <- parse_args(argv)
-
+  
   input_list <- get_arg(args, "input-list", required = TRUE)
   ripser_bin <- get_arg(args, "ripser-bin", required = TRUE)
   outdir <- get_arg(args, "outdir", required = TRUE)
   prefix <- get_arg(args, "prefix", default = "analysis")
-
+  
   ripser_format <- get_arg(args, "format", default = "distance")
   max_dim <- as.integer(get_arg(args, "max-dim", default = "1"))
   threshold <- as.numeric(get_arg(args, "threshold", default = "100"))
@@ -642,14 +642,14 @@ main <- function() {
   plot_width <- as.numeric(get_arg(args, "plot-width", default = "6"))
   plot_height <- as.numeric(get_arg(args, "plot-height", default = "6"))
   plot_dpi <- as.integer(get_arg(args, "plot-dpi", default = "300"))
-
+  
   plot_labels <- if (is.null(plot_labels_arg)) {
     NULL
   } else {
     trimws(strsplit(plot_labels_arg, ",", fixed = TRUE)[[1]])
   }
   plot_colors <- trimws(strsplit(plot_colors_arg, ",", fixed = TRUE)[[1]])
-
+  
   if (is.na(max_dim) || max_dim < 0) stop_error("--max-dim must be a non-negative integer.")
   if (is.na(threshold) || threshold < 0) stop_error("--threshold must be a non-negative number.")
   if (is.na(ratio) || ratio <= 0) stop_error("--ratio must be a positive number.")
@@ -668,7 +668,7 @@ main <- function() {
   if (any(invalid_colors)) {
     stop_error("Invalid --plot-colors value(s): ", paste(plot_colors[invalid_colors], collapse = ", "))
   }
-
+  
   ensure_dir(outdir)
   raw_dir <- file.path(outdir, "raw_ripser_output")
   barcode_dir <- file.path(outdir, "barcode_tables")
@@ -678,7 +678,7 @@ main <- function() {
   ensure_dir(barcode_dir)
   ensure_dir(log_dir)
   if (isTRUE(make_plots)) ensure_dir(plot_dir)
-
+  
   check_file_exists(input_list, "Input list")
   if (isTRUE(run_ripser)) {
     check_file_exists(ripser_bin, "Ripser++ executable")
@@ -689,35 +689,35 @@ main <- function() {
       )
     }
   }
-
+  
   manifest <- read_input_list(input_list)
   message_info("Loaded ", nrow(manifest), " matrix path(s) from input list.")
-
+  
   run_records <- vector("list", nrow(manifest))
   barcode_records <- list()
-
+  
   for (i in seq_len(nrow(manifest))) {
     matrix_id <- manifest$matrix_id[[i]]
     matrix_path <- manifest$matrix_path[[i]]
     raw_output <- file.path(raw_dir, paste0(prefix, "_", matrix_id, "_ripserpp.txt"))
     barcode_output <- file.path(barcode_dir, paste0(prefix, "_", matrix_id, "_barcode.tsv"))
-
+    
     message_info("Processing [", i, "/", nrow(manifest), "]: ", matrix_id)
-
+    
     result <- tryCatch({
       check_file_exists(matrix_path, "Numeric matrix")
-
+      
       n_rows <- NA_integer_
       n_cols <- NA_integer_
       validation_status <- "not_requested"
-
+      
       if (isTRUE(validate_matrix)) {
         validation <- validate_numeric_matrix_file(matrix_path)
         n_rows <- validation$n_rows
         n_cols <- validation$n_cols
         validation_status <- "passed"
       }
-
+      
       ripser_args <- build_ripser_args(
         format = ripser_format,
         max_dim = max_dim,
@@ -727,12 +727,12 @@ main <- function() {
         extra_args = extra_args,
         input_path = matrix_path
       )
-
+      
       command_string <- paste(
         shQuote(ripser_bin),
         paste(shQuote(ripser_args), collapse = " ")
       )
-
+      
       if (isTRUE(run_ripser)) {
         message_info("Running Ripser++ for ", matrix_id)
         exit_code <- run_ripser_one(
@@ -742,7 +742,7 @@ main <- function() {
           ripser_args = ripser_args,
           gpu_id = gpu_id
         )
-
+        
         if (!identical(exit_code, 0L)) {
           stop_error(
             "Ripser++ failed for ", matrix_id,
@@ -759,10 +759,10 @@ main <- function() {
         }
         exit_code <- 0L
       }
-
+      
       barcode_df <- parse_ripser_output(raw_output, matrix_id = matrix_id)
       write_tsv(barcode_df, barcode_output)
-
+      
       run_record <- data.frame(
         matrix_id = matrix_id,
         matrix_path = normalize_path_if_exists(matrix_path),
@@ -777,7 +777,7 @@ main <- function() {
         error_message = "",
         stringsAsFactors = FALSE
       )
-
+      
       list(
         run_record = run_record,
         barcode = barcode_df
@@ -785,7 +785,7 @@ main <- function() {
     }, error = function(e) {
       error_message <- conditionMessage(e)
       message_warn(error_message)
-
+      
       if (!file.exists(raw_output)) {
         cat("[ERROR] ", error_message, "\n", file = raw_output, sep = "")
       } else {
@@ -801,7 +801,7 @@ main <- function() {
           append = TRUE
         )
       }
-
+      
       failed_record <- data.frame(
         matrix_id = matrix_id,
         matrix_path = normalize_path_if_exists(matrix_path),
@@ -816,35 +816,35 @@ main <- function() {
         error_message = error_message,
         stringsAsFactors = FALSE
       )
-
+      
       if (!isTRUE(continue_on_error)) {
         stop(e)
       }
-
+      
       list(
         run_record = failed_record,
         barcode = NULL
       )
     })
-
+    
     run_records[[i]] <- result$run_record
-
+    
     if (!is.null(result$barcode)) {
       barcode_records[[matrix_id]] <- result$barcode
     }
   }
-
+  
   run_manifest <- do.call(rbind, run_records)
   if (is.null(run_manifest) || nrow(run_manifest) == 0) {
     stop_error("Module 2 produced no run records.")
   }
-
+  
   run_manifest_path <- file.path(
     outdir,
     paste0(prefix, "_module2_run_manifest.tsv")
   )
   write_tsv(run_manifest, run_manifest_path)
-
+  
   if (length(barcode_records) > 0) {
     combined_barcode <- do.call(rbind, barcode_records)
     rownames(combined_barcode) <- NULL
@@ -863,13 +863,13 @@ main <- function() {
       stringsAsFactors = FALSE
     )
   }
-
+  
   combined_barcode_path <- file.path(
     outdir,
     paste0(prefix, "_module2_barcode_all.tsv")
   )
   write_tsv(combined_barcode, combined_barcode_path)
-
+  
   plot_manifest_path <- file.path(
     outdir,
     paste0(prefix, "_module2_plot_manifest.tsv")
@@ -895,26 +895,26 @@ main <- function() {
     )
   }
   write_tsv(plot_manifest, plot_manifest_path)
-
+  
   summary_df <- summarize_barcode(combined_barcode)
   summary_path <- file.path(
     outdir,
     paste0(prefix, "_module2_homology_summary.tsv")
   )
   write_tsv(summary_df, summary_path)
-
+  
   module3_manifest <- run_manifest[
     run_manifest$status == "ok",
     c("matrix_id", "matrix_path", "raw_ripser_output", "barcode_table"),
     drop = FALSE
   ]
-
+  
   module3_manifest_path <- file.path(
     outdir,
     paste0(prefix, "_module3_input_manifest.tsv")
   )
   write_tsv(module3_manifest, module3_manifest_path)
-
+  
   message_info("Module 2 completed.")
   message_info("Run manifest: ", run_manifest_path)
   message_info("Combined barcode table: ", combined_barcode_path)
@@ -925,7 +925,7 @@ main <- function() {
     "Successful run(s): ", sum(run_manifest$status == "ok"),
     "; failed run(s): ", sum(run_manifest$status != "ok")
   )
-
+  
   failed_n <- sum(run_manifest$status != "ok")
   if (failed_n > 0) {
     message_warn(
@@ -933,7 +933,7 @@ main <- function() {
       " failed run(s). See run manifest for details."
     )
   }
-
+  
   if (nrow(module3_manifest) == 0) {
     stop_error(
       "Module 2 produced no successful records for Module 3. ",
