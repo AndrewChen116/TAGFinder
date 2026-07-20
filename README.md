@@ -220,7 +220,7 @@ Example datasets are available in
 ```
 example/
 
-feature_table.tsv
+expression.tsv
 
 metadata.tsv
 ```
