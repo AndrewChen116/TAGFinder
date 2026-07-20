@@ -451,10 +451,26 @@ prepare_topological_index_data <- function(barcode_df, dimension, group_order,
 
 draw_topological_index_plot <- function(plot_df, dimension, group_order,
                                         group_labels, group_colors) {
+  old_par <- par(no.readonly = TRUE)
+  on.exit(par(old_par), add = TRUE)
+  par(
+    mar = c(5.8, 6.2, 4.0, 1.2),
+    las = 1,
+    cex = 1.0,
+    cex.axis = 1.5,
+    cex.lab = 1.5,
+    cex.main = 1.5
+  )
+  
   if (nrow(plot_df) == 0) {
     plot.new()
     title(main = paste0("H", dimension, " persistent homology"))
-    text(0.5, 0.5, paste0("No H", dimension, " intervals were detected"))
+    text(
+      0.5,
+      0.5,
+      paste0("No H", dimension, " intervals were detected"),
+      cex = 1.5
+    )
     return(invisible(NULL))
   }
   
@@ -464,10 +480,6 @@ draw_topological_index_plot <- function(plot_df, dimension, group_order,
   if (!is.finite(x_max) || x_max <= x_min) x_max <- x_min + 1
   y_max <- max(plot_df$topological_index, na.rm = TRUE)
   if (!is.finite(y_max) || y_max < 1) y_max <- 1
-  
-  old_par <- par(no.readonly = TRUE)
-  on.exit(par(old_par), add = TRUE)
-  par(mar = c(5.0, 5.2, 3.2, 1.0), las = 1)
   
   plot(
     NA_real_, NA_real_,
@@ -509,7 +521,7 @@ draw_topological_index_plot <- function(plot_df, dimension, group_order,
     col = alpha_colors,
     lwd = 4,
     bty = "n",
-    cex = 0.9
+    cex = 1.35
   )
   invisible(NULL)
 }

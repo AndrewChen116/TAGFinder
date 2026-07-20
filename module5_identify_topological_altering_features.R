@@ -94,7 +94,7 @@ parse_args <- function() {
       "  --volcano-p-cutoff       Raw empirical p-value cutoff used for plot colors [default: 0.05]\n",
       "  --volcano-delta-cutoff   Absolute delta-score cutoff used for plot colors\n",
       "                           [default: the value of --min-abs-delta]\n",
-      "  --volcano-width          Figure width in inches [default: 8]\n",
+      "  --volcano-width          Figure width in inches [default: 12]\n",
       "  --volcano-height         Figure height in inches [default: 6]\n",
       "  --volcano-dpi            PNG resolution [default: 300]\n",
       "  --volcano-point-size     Point-size multiplier [default: 0.65]\n\n",
@@ -556,14 +556,22 @@ draw_volcano_plot <- function(volcano_df, volcano_p_cutoff,
     "Significant increase" = grDevices::adjustcolor("#FF2A1A", alpha.f = 0.82)
   )
   
-  # Use separate plotting and legend panels. This prevents the legend from
-  # covering data points or being clipped by the device boundary, independent
-  # of the score range or the number of digits in category counts.
+  # Preserve the original left-plot/right-legend layout while assigning each
+  # component its own panel. Together with the wider output device, this keeps
+  # the legend outside the scatter coordinates without clipping its text.
   layout(
-    matrix(c(1, 2), nrow = 2, byrow = TRUE),
-    heights = c(4.5, 1.5)
+    matrix(c(1, 2), nrow = 1, byrow = TRUE),
+    widths = c(1.7, 1.3)
   )
-  par(mar = c(4.8, 5.3, 1.0, 1.0), las = 1, xpd = FALSE)
+  par(
+    mar = c(5.1, 5.3, 2.0, 1.0),
+    las = 1,
+    xpd = FALSE,
+    cex = 1.0,
+    cex.axis = 1.5,
+    cex.lab = 1.5,
+    cex.main = 1.5
+  )
   
   x_values <- volcano_df$score_tested
   y_values <- volcano_df$minus_log10_p
@@ -627,12 +635,12 @@ draw_volcano_plot <- function(volcano_df, volcano_p_cutoff,
   ))
   legend_labels <- c(
     paste0(
-      "Significant increase (n=",
-      format(category_counts[["Significant increase"]], big.mark = ","), ")"
+      "Significant increase (P < ", format(volcano_p_cutoff),
+      "; n=", format(category_counts[["Significant increase"]], big.mark = ","), ")"
     ),
     paste0(
-      "Significant decrease (n=",
-      format(category_counts[["Significant decrease"]], big.mark = ","), ")"
+      "Significant decrease (P < ", format(volcano_p_cutoff),
+      "; n=", format(category_counts[["Significant decrease"]], big.mark = ","), ")"
     ),
     paste0(
       "Not significant (n=",
@@ -640,31 +648,20 @@ draw_volcano_plot <- function(volcano_df, volcano_p_cutoff,
     )
   )
   
-  significance_rule <- paste0(
-    "Volcano classification: P < ", format(volcano_p_cutoff),
-    if (volcano_delta_cutoff > 0) {
-      paste0(" and |Delta score| >= ", format(volcano_delta_cutoff))
-    } else {
-      ""
-    }
-  )
-  
-  # Draw the legend in a dedicated lower panel rather than inside or outside
-  # the scatter-plot coordinates.
-  par(mar = c(0.2, 5.3, 0.2, 1.0), xpd = FALSE)
+  # Draw the legend in its dedicated right-hand panel. The original legend cex
+  # was 0.85; multiplying it by 1.5 gives 1.275.
+  par(mar = c(2.0, 0.2, 2.0, 0.5), xpd = FALSE, cex = 1.0)
   plot.new()
   legend(
     "center",
     legend = legend_labels,
-    title = significance_rule,
     col = category_colors[c(
       "Significant increase", "Significant decrease", "Not significant"
     )],
     pch = 16,
     pt.cex = 1.2,
     bty = "n",
-    cex = 0.82,
-    title.adj = 0
+    cex = 1.275
   )
   invisible(NULL)
 }
@@ -810,7 +807,7 @@ main <- function() {
   } else {
     as.numeric(volcano_delta_cutoff_arg)
   }
-  volcano_width <- as.numeric(get_arg(args, "volcano-width", default = "8"))
+  volcano_width <- as.numeric(get_arg(args, "volcano-width", default = "12"))
   volcano_height <- as.numeric(get_arg(args, "volcano-height", default = "6"))
   volcano_dpi <- as.integer(get_arg(args, "volcano-dpi", default = "300"))
   volcano_point_size <- as.numeric(get_arg(args, "volcano-point-size", default = "0.65"))
