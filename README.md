@@ -11,7 +11,7 @@ This software provides an end-to-end framework that identifies feature-level con
 
 The software is designed for any feature-by-sample matrix, including transcriptomics, DNA methylation, proteomics, metabolomics, and other omics datasets.
 
-<img width="811" height="394" alt="圖片" src="https://github.com/user-attachments/assets/6076128f-70ab-4c6f-80c3-d6e7e0b95c2a" />
+<img width="841" height="422" alt="圖片" src="https://github.com/user-attachments/assets/12bc454a-7d96-4ad7-82f2-d86068cb7e65" />
 
 
 ---
