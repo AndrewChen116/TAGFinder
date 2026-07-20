@@ -15,25 +15,25 @@ The example dataset contains:
 
 Follow the [installation guideline](https://github.com/AndrewChen116/TAGFinder#installation) to download TAGFinder and setup the environment
 
-> Download TAGFinder
+1. Download TAGFinder
 ```bash
 git clone https://github.com/AndrewChen116/TAGFinder.git
 cd TAGFinder
 ```
 
-> Setup environment through Conda
+2. Setup environment through Conda
 ```bash
 conda env create -f environment.yml
 conda activate tagfinder_env
 ```
 
-> Download Ripser++
+3. Install Ripser++
 ```bash
 chmod +x install_ripser.sh
 ./install_ripser.sh
 ```
 
-Create the result directories automatically by running the modules below. Each
+> Create the result directories automatically by running the modules below. Each
 module creates its own output directory if it does not already exist.
 
 ## Step 1. Construct phenotype-specific networks
