@@ -32,8 +32,8 @@ The software is designed for any feature-by-sample matrix, including transcripto
 
 ### Requirements
 
-- R (≥ 4.3)
 - Git
+- Conda
 - CUDA (≥ 10.1)
 
 ### 1. Clone repository
