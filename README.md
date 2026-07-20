@@ -16,15 +16,15 @@ The software is designed for any feature-by-sample matrix, including transcripto
 
 ---
 
-# Software Architecture
+## Software Architecture
 
 | Module | Description |
 |---------|-------------|
-| Module 1 | Construct phenotype-specific feature networks |
-| Module 2 | Perform persistent homology analysis |
-| Module 3 | Extract topological feature compositions |
-| Module 4 | Calculate feature participation scores |
-| Module 5 | Identify topological-altering features |
+| 1 | Construct phenotype-specific feature networks |
+| 2 | Perform persistent homology analysis |
+| 3 | Extract topological feature compositions |
+| 4 | Calculate feature participation scores |
+| 5 | Identify topological-altering features |
 
 ---
 
@@ -33,9 +33,8 @@ The software is designed for any feature-by-sample matrix, including transcripto
 ### Requirements
 
 - R (≥ 4.3)
-- Python (≥ 3.10)
-- Ripser++
 - Git
+- CUDA >=10.1
 
 ### 1. Clone repository
 
