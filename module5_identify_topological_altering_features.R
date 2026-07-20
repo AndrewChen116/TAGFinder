@@ -537,10 +537,13 @@ prepare_volcano_data <- function(result_df, volcano_p_cutoff,
 draw_volcano_plot <- function(volcano_df, volcano_p_cutoff,
                               volcano_delta_cutoff, point_size) {
   old_par <- par(no.readonly = TRUE)
-  on.exit(par(old_par), add = TRUE)
-  par(mar = c(5.1, 5.3, 2.0, 10.5), las = 1, xpd = FALSE)
+  on.exit({
+    layout(matrix(1))
+    par(old_par)
+  }, add = TRUE)
 
   if (nrow(volcano_df) == 0) {
+    par(mar = c(5.1, 5.3, 2.0, 2.0), las = 1)
     plot.new()
     title(main = "Volcano plot")
     text(0.5, 0.5, "No valid empirical p-values available")
@@ -552,6 +555,15 @@ draw_volcano_plot <- function(volcano_df, volcano_p_cutoff,
     "Significant decrease" = grDevices::adjustcolor("#2536E8", alpha.f = 0.82),
     "Significant increase" = grDevices::adjustcolor("#FF2A1A", alpha.f = 0.82)
   )
+
+  # Use separate plotting and legend panels. This prevents the legend from
+  # covering data points or being clipped by the device boundary, independent
+  # of the score range or the number of digits in category counts.
+  layout(
+    matrix(c(1, 2), nrow = 2, byrow = TRUE),
+    heights = c(4.5, 1.5)
+  )
+  par(mar = c(4.8, 5.3, 1.0, 1.0), las = 1, xpd = FALSE)
 
   x_values <- volcano_df$score_tested
   y_values <- volcano_df$minus_log10_p
@@ -615,30 +627,44 @@ draw_volcano_plot <- function(volcano_df, volcano_p_cutoff,
   ))
   legend_labels <- c(
     paste0(
-      "Significant increase (P < ", format(volcano_p_cutoff),
-      "; n=", format(category_counts[["Significant increase"]], big.mark = ","), ")"
+      "Significant increase (n=",
+      format(category_counts[["Significant increase"]], big.mark = ","), ")"
     ),
     paste0(
-      "Significant decrease (P < ", format(volcano_p_cutoff),
-      "; n=", format(category_counts[["Significant decrease"]], big.mark = ","), ")"
+      "Significant decrease (n=",
+      format(category_counts[["Significant decrease"]], big.mark = ","), ")"
     ),
     paste0(
       "Not significant (n=",
       format(category_counts[["Not significant"]], big.mark = ","), ")"
     )
   )
+
+  significance_rule <- paste0(
+    "Volcano classification: P < ", format(volcano_p_cutoff),
+    if (volcano_delta_cutoff > 0) {
+      paste0(" and |Delta score| >= ", format(volcano_delta_cutoff))
+    } else {
+      ""
+    }
+  )
+
+  # Draw the legend in a dedicated lower panel rather than inside or outside
+  # the scatter-plot coordinates.
+  par(mar = c(0.2, 5.3, 0.2, 1.0), xpd = FALSE)
+  plot.new()
   legend(
-    "topright",
-    inset = c(-0.48, 0),
+    "center",
     legend = legend_labels,
+    title = significance_rule,
     col = category_colors[c(
       "Significant increase", "Significant decrease", "Not significant"
     )],
     pch = 16,
     pt.cex = 1.2,
     bty = "n",
-    cex = 0.85,
-    xpd = NA
+    cex = 0.82,
+    title.adj = 0
   )
   invisible(NULL)
 }
