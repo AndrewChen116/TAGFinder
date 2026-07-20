@@ -11,36 +11,8 @@ This software provides an end-to-end framework that identifies feature-level con
 
 The software is designed for any feature-by-sample matrix, including transcriptomics, DNA methylation, proteomics, metabolomics, and other omics datasets.
 
----
+<img width="811" height="394" alt="圖片" src="https://github.com/user-attachments/assets/6076128f-70ab-4c6f-80c3-d6e7e0b95c2a" />
 
-# Workflow
-
-Feature table
-
-↓
-
-Module 1
-Construct Feature Networks
-
-↓
-
-Module 2
-Persistent Homology Analysis
-
-↓
-
-Module 3
-Topological Feature Composition Analysis
-
-↓
-
-Module 4
-Participation Score Calculation
-
-↓
-
-Module 5
-Topological-altering Feature Identification
 
 ---
 
