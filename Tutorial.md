@@ -11,6 +11,15 @@ The example dataset contains:
 - 141 cancer samples
 
 
+## Table of Contents
+
+- [Step 0. Prepare the environment](#step-0-prepare-the-environment)
+- [Step 1. Construct phenotype-specific networks](#step-1-construct-phenotype-specific-networks)
+- [Step 2. Perform persistent homology analysis](#step-2-perform-persistent-homology-analysis)
+- [Step 3. Determine topological feature composition](#step-3-determine-topological-feature-composition)
+- [Step 4. Calculate participation scores](#step-4-calculate-participation-scores)
+- [Step 5. Identify topological-altering genes](#step-5-identify-topological-altering-genes)
+
 ## Step 0. Prepare the environment
 
 Follow the [installation guideline](https://github.com/AndrewChen116/TAGFinder#installation) to download TAGFinder and setup the environment
@@ -251,7 +260,7 @@ Figure:
 results/module5/analysis_module5_topological_altering_features.tsv
 ```
 
-Important result columns include:
+### Important result columns include:
 
 | Column | Description |
 |---|---|
