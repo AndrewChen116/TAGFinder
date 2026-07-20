@@ -28,23 +28,23 @@ The software is designed for any feature-by-sample matrix, including transcripto
 
 ---
 
-# Installation
+## Installation
 
-## Requirements
+### Requirements
 
 - R (≥ 4.3)
 - Python (≥ 3.10)
 - Ripser++
 - Git
 
-## 1. Clone repository
+### 1. Clone repository
 
 ```bash
 git clone https://github.com/AndrewChen116/TAGFinder.git
 cd TAGFinder
 ```
 
-## 2. Create the Conda environment
+### 2. Create the Conda environment
 
 The recommended method is to create the environment from environment.yml:
 ```bash
@@ -56,7 +56,7 @@ Activate the environment:
 conda activate tagfinder_env
 ```
 
-## 3. Install Ripser++
+### 3. Install Ripser++
 
 Check that the NVIDIA driver and CUDA compiler are available:
 ```
@@ -73,7 +73,7 @@ chmod +x install_ripser.sh
 ./install_ripser.sh
 ```
 
-## 4. Validate the TAGFinder installation
+### 4. Validate the TAGFinder installation
 
 Check the command-line interface of each module:
 ```
@@ -86,9 +86,9 @@ Rscript module5_identify_topological_altering_features.R --help
 
 ---
 
-# Input
+## Input
 
-## Feature table
+### Feature table
 
 Rows represent biological samples.
 
@@ -104,7 +104,7 @@ S3
 
 ---
 
-## Metadata
+### Metadata
 
 ```
 Sample    Phenotype
@@ -118,9 +118,9 @@ S3        phenotype2
 
 ---
 
-# Usage
+## Usage
 
-## Module 1
+### Module 1
 
 ```bash
 Rscript module1_network_construction.R \
@@ -139,7 +139,7 @@ Rscript module2_persistent_homology.R \
 
 ---
 
-## Module 3
+### Module 3
 
 ```bash
 Rscript module3_feature_composition.R \
@@ -157,7 +157,7 @@ Rscript module4_participation_score.R \
 
 ---
 
-## Module 5
+### Module 5
 
 ```bash
 Rscript module5_identify_topological_altering_features.R \
@@ -166,7 +166,7 @@ Rscript module5_identify_topological_altering_features.R \
 
 ---
 
-# Output
+## Output
 
 ```
 results/
@@ -195,7 +195,7 @@ Final outputs include
 
 ---
 
-# Example Dataset
+## Example Dataset
 
 Example datasets are available in
 
@@ -213,23 +213,10 @@ Example command
 bash run_example.sh
 ```
 
----
-
-# Citation
-
-If you use this software in your research, please cite
-
-> Paper information will be updated after publication.
 
 ---
 
-# License
-
-MIT License
-
----
-
-# Contact
+## Contact
 
 Kuan-Lin Chen
 
