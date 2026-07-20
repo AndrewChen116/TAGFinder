@@ -80,7 +80,7 @@ results/module1/
 └── analysis_module2_ripser_input_list.txt
 ```
 
-The numeric `topPct` matrices contain no row or column names and are passed to
+> The numeric `topPct` matrices contain no row or column names and are passed to
 Ripser++ in Module 2. The output manifest retains the labeled matrices required
 by later modules.
 
@@ -122,10 +122,12 @@ results/module2/
 ├── analysis_module2_run_manifest.tsv
 └── analysis_module3_input_manifest.tsv
 ```
+
+> Each barcode record contains the homology dimension, birth threshold, death
+threshold, lifespan, and infinite-death status of one topological feature.
+
 <img width="864" height="432" alt="analysis_module2_barcode_plot" src="https://github.com/user-attachments/assets/2f3e71fd-62a5-4fdb-b991-b055ff147b7c" />
 
-Each barcode record contains the homology dimension, birth threshold, death
-threshold, lifespan, and infinite-death status of one topological feature.
 
 ## Step 3. Determine topological feature composition
 
@@ -158,7 +160,7 @@ results/module3/
 └── analysis_module4_input_manifest.tsv
 ```
 
-The combined composition table links each persistence interval to its component
+> The combined composition table links each persistence interval to its component
 features and provides the input for participation-score calculation.
 
 ## Step 4. Calculate participation scores
@@ -193,7 +195,7 @@ results/module4/
 └── analysis_module5_input_manifest.tsv
 ```
 
-For each feature, the delta score is calculated as the cancer participation
+> For each feature, the Δscore is calculated as the cancer participation
 score minus the control participation score. A positive value therefore means
 increased participation in cancer-associated topological features.
 
@@ -222,7 +224,7 @@ Rscript module5_identify_topological_altering_features.R \
     --degree-threshold 5
 ```
 
-With the default `topPct` degree matrix, `--degree-threshold 5` defines an edge
+> With the default `topPct` degree matrix, `--degree-threshold 5` defines an edge
 as belonging to the top 5% of network connections.
 
 Outputs:
